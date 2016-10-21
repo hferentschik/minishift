@@ -32,7 +32,7 @@ const MachineName = "minishift"
 const APIServerPort = 8443
 
 // Fix for windows
-var Minipath = filepath.Join(homedir.HomeDir(), ".minishift")
+var Minipath = filepath.Join(homedir.HomeDir(), ".docker/machine")
 
 // TODO: Fix for windows
 // KubeconfigPath is the path to the Kubernetes client config

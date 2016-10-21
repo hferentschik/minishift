@@ -26,7 +26,7 @@ const VersionPrefix = "v"
 
 // The current version of minishift
 // This is a private field and should be set when compiling with --ldflags="-X github.com/jimmidyson/minishift/pkg/version.version=vX.Y.Z"
-var version = "v0.0.0-unset"
+var version = "0.9.0"
 
 func GetVersion() string {
 	return version
