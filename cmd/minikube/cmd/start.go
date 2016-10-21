@@ -19,8 +19,6 @@ package cmd
 import (
 	"fmt"
 	"os"
-	"strconv"
-	"strings"
 
 	units "github.com/docker/go-units"
 	"github.com/docker/machine/libmachine"
@@ -99,39 +97,40 @@ func runStart(cmd *cobra.Command, args []string) {
 		os.Exit(1)
 	}
 
-	if err := cluster.UpdateCluster(host.Driver, config); err != nil {
-		glog.Errorln("Error updating cluster: ", err)
-		os.Exit(1)
-	}
+	//if err := cluster.UpdateCluster(host.Driver, config); err != nil {
+	//	glog.Errorln("Error updating cluster: ", err)
+	//	os.Exit(1)
+	//}
 
-	kubeIP, err := host.Driver.GetIP()
-	if err != nil {
-		glog.Errorln("Error connecting to cluster: ", err)
-		os.Exit(1)
-	}
-	if err := cluster.StartCluster(host, kubeIP, config); err != nil {
-		glog.Errorln("Error starting cluster: ", err)
-		os.Exit(1)
-	}
+	//kubeIP, err := host.Driver.GetIP()
+	//if err != nil {
+	//	glog.Errorln("Error connecting to cluster: ", err)
+	//	os.Exit(1)
+	//}
 
-	kubeHost, err := host.Driver.GetURL()
-	if err != nil {
-		glog.Errorln("Error connecting to cluster: ", err)
-		os.Exit(1)
-	}
-	kubeHost = strings.Replace(kubeHost, "tcp://", "https://", -1)
-	kubeHost = strings.Replace(kubeHost, ":2376", ":"+strconv.Itoa(constants.APIServerPort), -1)
+	//if err := cluster.StartCluster(host, kubeIP, config); err != nil {
+	//	glog.Errorln("Error starting cluster: ", err)
+	//	os.Exit(1)
+	//}
+	//
+	//kubeHost, err := host.Driver.GetURL()
+	//if err != nil {
+	//	glog.Errorln("Error connecting to cluster: ", err)
+	//	os.Exit(1)
+	//}
+	//kubeHost = strings.Replace(kubeHost, "tcp://", "https://", -1)
+	//kubeHost = strings.Replace(kubeHost, ":2376", ":"+strconv.Itoa(constants.APIServerPort), -1)
 
 	// setup kubeconfig
-	certAuth, err := cluster.GetCA(host)
-	if err != nil {
-		glog.Errorln("Error setting up kubeconfig: ", err)
-		os.Exit(1)
-	}
-	if err := setupKubeconfig(kubeHost, certAuth); err != nil {
-		glog.Errorln("Error setting up kubeconfig: ", err)
-		os.Exit(1)
-	}
+	//certAuth, err := cluster.GetCA(host)
+	//if err != nil {
+	//	glog.Errorln("Error setting up kubeconfig: ", err)
+	//	os.Exit(1)
+	//}
+	//if err := setupKubeconfig(kubeHost, certAuth); err != nil {
+	//	glog.Errorln("Error setting up kubeconfig: ", err)
+	//	os.Exit(1)
+	//}
 }
 
 func calculateDiskSizeInMB(humanReadableDiskSize string) int {
