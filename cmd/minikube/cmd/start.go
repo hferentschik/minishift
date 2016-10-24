@@ -19,6 +19,7 @@ package cmd
 import (
 	"fmt"
 	"os"
+	"runtime"
 
 	units "github.com/docker/go-units"
 	"github.com/docker/machine/libmachine"
@@ -34,6 +35,9 @@ import (
 	"github.com/jimmidyson/minishift/pkg/minikube/constants"
 	"github.com/jimmidyson/minishift/pkg/minikube/kubeconfig"
 	"github.com/jimmidyson/minishift/pkg/util"
+	"github.com/openshift/origin/pkg/bootstrap/docker"
+	kcmdutil "k8s.io/kubernetes/pkg/kubectl/cmd/util"
+	"github.com/openshift/origin/pkg/cmd/util/clientcmd"
 )
 
 const (
@@ -94,6 +98,18 @@ func runStart(cmd *cobra.Command, args []string) {
 	err := util.Retry(3, start)
 	if err != nil {
 		glog.Errorln("Error starting host: ", err)
+		os.Exit(1)
+	}
+
+	clusterStartConfig := &docker.ClientStartConfig{
+		Out:            os.Stdout,
+		PortForwarding: defaultPortForwarding(),
+	}
+
+	f := clientcmd.New(cmd.PersistentFlags())
+	kcmdutil.CheckErr(clusterStartConfig.Complete(f, cmd))
+	kcmdutil.CheckErr(clusterStartConfig.Validate(os.Stdout))
+	if err := clusterStartConfig.Start(os.Stdout); err != nil {
 		os.Exit(1)
 	}
 
@@ -221,4 +237,9 @@ func init() {
 	viper.BindPFlags(startCmd.Flags())
 
 	RootCmd.AddCommand(startCmd)
+}
+
+func defaultPortForwarding() bool {
+	// Defaults to true if running on Mac, with no DOCKER_HOST defined
+	return runtime.GOOS == "darwin" && len(os.Getenv("DOCKER_HOST")) == 0
 }
