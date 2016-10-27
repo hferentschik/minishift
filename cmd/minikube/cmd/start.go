@@ -23,6 +23,7 @@ import (
 
 	units "github.com/docker/go-units"
 	"github.com/docker/machine/libmachine"
+	"github.com/docker/machine/libmachine/provision"
 	"github.com/docker/machine/libmachine/host"
 	"github.com/golang/glog"
 	ocfg "github.com/openshift/origin/pkg/cmd/cli/config"
@@ -38,6 +39,7 @@ import (
 	"github.com/openshift/origin/pkg/bootstrap/docker"
 	kcmdutil "k8s.io/kubernetes/pkg/kubectl/cmd/util"
 	"github.com/openshift/origin/pkg/cmd/util/clientcmd"
+	"github.com/docker/machine/libmachine/drivers"
 )
 
 const (
@@ -67,10 +69,19 @@ assumes you already have Virtualbox installed.`,
 	Run: runStart,
 }
 
+type MinishiftProvisionerDetector struct {
+}
+
+func (detector *MinishiftProvisionerDetector) DetectProvisioner(d drivers.Driver) (provision.Provisioner, error) {
+	fmt.Println("Hello world")
+	return provision.NewBoot2DockerProvisioner(d), nil
+}
+
 func runStart(cmd *cobra.Command, args []string) {
 	fmt.Println("Starting local OpenShift cluster...")
-	api := libmachine.NewClient(constants.Minipath, constants.MakeMiniPath("certs"))
-	defer api.Close()
+	provision.SetDetector(&MinishiftProvisionerDetector{})
+	libMachineClient := libmachine.NewClient(constants.Minipath, constants.MakeMiniPath("certs"))
+	defer libMachineClient.Close()
 
 	config := cluster.MachineConfig{
 		MinikubeISO:      viper.GetString(isoURL),
@@ -89,7 +100,7 @@ func runStart(cmd *cobra.Command, args []string) {
 
 	var host *host.Host
 	start := func() (err error) {
-		host, err = cluster.StartHost(api, config)
+		host, err = cluster.StartHost(libMachineClient, config)
 		if err != nil {
 			glog.Errorf("Error starting host: %s. Retrying.\n", err)
 		}
@@ -99,6 +110,11 @@ func runStart(cmd *cobra.Command, args []string) {
 	if err != nil {
 		glog.Errorln("Error starting host: ", err)
 		os.Exit(1)
+	}
+
+	envMap, err := cluster.GetHostDockerEnv(libMachineClient)
+	for k, v := range envMap {
+		os.Setenv(k, v)
 	}
 
 	clusterStartConfig := &docker.ClientStartConfig{
@@ -112,41 +128,6 @@ func runStart(cmd *cobra.Command, args []string) {
 	if err := clusterStartConfig.Start(os.Stdout); err != nil {
 		os.Exit(1)
 	}
-
-	//if err := cluster.UpdateCluster(host.Driver, config); err != nil {
-	//	glog.Errorln("Error updating cluster: ", err)
-	//	os.Exit(1)
-	//}
-
-	//kubeIP, err := host.Driver.GetIP()
-	//if err != nil {
-	//	glog.Errorln("Error connecting to cluster: ", err)
-	//	os.Exit(1)
-	//}
-
-	//if err := cluster.StartCluster(host, kubeIP, config); err != nil {
-	//	glog.Errorln("Error starting cluster: ", err)
-	//	os.Exit(1)
-	//}
-	//
-	//kubeHost, err := host.Driver.GetURL()
-	//if err != nil {
-	//	glog.Errorln("Error connecting to cluster: ", err)
-	//	os.Exit(1)
-	//}
-	//kubeHost = strings.Replace(kubeHost, "tcp://", "https://", -1)
-	//kubeHost = strings.Replace(kubeHost, ":2376", ":"+strconv.Itoa(constants.APIServerPort), -1)
-
-	// setup kubeconfig
-	//certAuth, err := cluster.GetCA(host)
-	//if err != nil {
-	//	glog.Errorln("Error setting up kubeconfig: ", err)
-	//	os.Exit(1)
-	//}
-	//if err := setupKubeconfig(kubeHost, certAuth); err != nil {
-	//	glog.Errorln("Error setting up kubeconfig: ", err)
-	//	os.Exit(1)
-	//}
 }
 
 func calculateDiskSizeInMB(humanReadableDiskSize string) int {
