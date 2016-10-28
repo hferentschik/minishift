@@ -37,6 +37,7 @@ import (
 	"github.com/jimmidyson/minishift/pkg/minikube/kubeconfig"
 	"github.com/jimmidyson/minishift/pkg/util"
 	"github.com/openshift/origin/pkg/bootstrap/docker"
+	dockerhost "github.com/openshift/origin/pkg/bootstrap/docker/host"
 	kcmdutil "k8s.io/kubernetes/pkg/kubectl/cmd/util"
 	"github.com/openshift/origin/pkg/cmd/util/clientcmd"
 	"github.com/docker/machine/libmachine/drivers"
@@ -69,6 +70,8 @@ assumes you already have Virtualbox installed.`,
 	Run: runStart,
 }
 
+var clusterUpConfig = docker.ClientStartConfig{}
+
 type MinishiftProvisionerDetector struct {
 }
 
@@ -79,7 +82,10 @@ func (detector *MinishiftProvisionerDetector) DetectProvisioner(d drivers.Driver
 
 func runStart(cmd *cobra.Command, args []string) {
 	fmt.Println("Starting local OpenShift cluster...")
+
+	// TODO Move detector and provisioner into dedicated package (HF)
 	provision.SetDetector(&MinishiftProvisionerDetector{})
+
 	libMachineClient := libmachine.NewClient(constants.Minipath, constants.MakeMiniPath("certs"))
 	defer libMachineClient.Close()
 
@@ -117,15 +123,13 @@ func runStart(cmd *cobra.Command, args []string) {
 		os.Setenv(k, v)
 	}
 
-	clusterStartConfig := &docker.ClientStartConfig{
-		Out:            os.Stdout,
-		PortForwarding: defaultPortForwarding(),
-	}
+	clusterUpConfig.Out = os.Stdout
+	clusterUpConfig.PortForwarding = defaultPortForwarding()
 
 	f := clientcmd.New(cmd.PersistentFlags())
-	kcmdutil.CheckErr(clusterStartConfig.Complete(f, cmd))
-	kcmdutil.CheckErr(clusterStartConfig.Validate(os.Stdout))
-	if err := clusterStartConfig.Start(os.Stdout); err != nil {
+	kcmdutil.CheckErr(clusterUpConfig.Complete(f, cmd))
+	kcmdutil.CheckErr(clusterUpConfig.Validate(os.Stdout))
+	if err := clusterUpConfig.Start(os.Stdout); err != nil {
 		os.Exit(1)
 	}
 }
@@ -215,11 +219,29 @@ func init() {
 	startCmd.Flags().Bool(deployRouter, false, "Should the OpenShift router be deployed?")
 	startCmd.Flags().String(openshiftVersion, "", "The OpenShift version that the minishift VM will run (ex: v1.2.3) OR a URI which contains an openshift binary (ex: file:///home/developer/go/src/github.com/openshift/origin/_output/local/bin/linux/amd64/openshift)")
 
+	// TODO We need to determine which flags we need to expose via minishift and which flags we can hard-wire (HF)
+	startCmd.Flags().BoolVar(&clusterUpConfig.ShouldCreateDockerMachine, "create-machine", false, "Create a Docker machine if one doesn't exist")
+	startCmd.Flags().StringVar(&clusterUpConfig.DockerMachine, "docker-machine", "", "Specify the Docker machine to use")
+	startCmd.Flags().StringVar(&clusterUpConfig.ImageVersion, "version", "", "Specify the tag for OpenShift images")
+	startCmd.Flags().StringVar(&clusterUpConfig.Image, "image", "openshift/origin", "Specify the images to use for OpenShift")
+	startCmd.Flags().BoolVar(&clusterUpConfig.SkipRegistryCheck, "skip-registry-check", false, "Skip Docker daemon registry check")
+	startCmd.Flags().StringVar(&clusterUpConfig.PublicHostname, "public-hostname", "", "Public hostname for OpenShift cluster")
+	startCmd.Flags().StringVar(&clusterUpConfig.RoutingSuffix, "routing-suffix", "", "Default suffix for server routes")
+	startCmd.Flags().BoolVar(&clusterUpConfig.UseExistingConfig, "use-existing-config", false, "Use existing configuration if present")
+	startCmd.Flags().StringVar(&clusterUpConfig.HostConfigDir, "host-config-dir", dockerhost.DefaultConfigDir, "Directory on Docker host for OpenShift configuration")
+	startCmd.Flags().StringVar(&clusterUpConfig.HostVolumesDir, "host-volumes-dir", dockerhost.DefaultVolumesDir, "Directory on Docker host for OpenShift volumes")
+	startCmd.Flags().StringVar(&clusterUpConfig.HostDataDir, "host-data-dir", "", "Directory on Docker host for OpenShift data. If not specified, etcd data will not be persisted on the host.")
+	startCmd.Flags().BoolVar(&clusterUpConfig.PortForwarding, "forward-ports", clusterUpConfig.PortForwarding, "Use Docker port-forwarding to communicate with origin container. Requires 'socat' locally.")
+	startCmd.Flags().IntVar(&clusterUpConfig.ServerLogLevel, "server-loglevel", 0, "Log level for OpenShift server")
+	startCmd.Flags().StringSliceVarP(&clusterUpConfig.Environment, "env", "e", clusterUpConfig.Environment, "Specify key value pairs of environment variables to set on OpenShift container")
+	startCmd.Flags().BoolVar(&clusterUpConfig.ShouldInstallMetrics, "metrics", false, "Install metrics (experimental)")
+
 	viper.BindPFlags(startCmd.Flags())
 
 	RootCmd.AddCommand(startCmd)
 }
 
+// TODO figure out the exact meaning of this. Needs to move (HF)
 func defaultPortForwarding() bool {
 	// Defaults to true if running on Mac, with no DOCKER_HOST defined
 	return runtime.GOOS == "darwin" && len(os.Getenv("DOCKER_HOST")) == 0
