@@ -19,28 +19,23 @@ package cmd
 import (
 	"fmt"
 	"os"
-	"runtime"
+	"os/exec"
 
 	units "github.com/docker/go-units"
 	"github.com/docker/machine/libmachine"
 	"github.com/docker/machine/libmachine/provision"
 	"github.com/docker/machine/libmachine/host"
 	"github.com/golang/glog"
-	ocfg "github.com/openshift/origin/pkg/cmd/cli/config"
 	"github.com/spf13/cobra"
 	"github.com/spf13/viper"
-	"k8s.io/kubernetes/pkg/api"
-	cfg "k8s.io/kubernetes/pkg/client/unversioned/clientcmd/api"
 
 	"github.com/jimmidyson/minishift/pkg/minikube/cluster"
 	"github.com/jimmidyson/minishift/pkg/minikube/constants"
-	"github.com/jimmidyson/minishift/pkg/minikube/kubeconfig"
 	"github.com/jimmidyson/minishift/pkg/util"
 	"github.com/openshift/origin/pkg/bootstrap/docker"
 	dockerhost "github.com/openshift/origin/pkg/bootstrap/docker/host"
-	kcmdutil "k8s.io/kubernetes/pkg/kubectl/cmd/util"
-	"github.com/openshift/origin/pkg/cmd/util/clientcmd"
 	"github.com/docker/machine/libmachine/drivers"
+	"bytes"
 )
 
 const (
@@ -123,15 +118,15 @@ func runStart(cmd *cobra.Command, args []string) {
 		os.Setenv(k, v)
 	}
 
-	clusterUpConfig.Out = os.Stdout
-	clusterUpConfig.PortForwarding = defaultPortForwarding()
-
-	f := clientcmd.New(cmd.PersistentFlags())
-	kcmdutil.CheckErr(clusterUpConfig.Complete(f, cmd))
-	kcmdutil.CheckErr(clusterUpConfig.Validate(os.Stdout))
-	if err := clusterUpConfig.Start(os.Stdout); err != nil {
+	ocCmd := exec.Command("/Users/hardy/.minishift/cache/oc/1.3.1/oc", "cluster", "up")
+	var out bytes.Buffer
+	ocCmd.Stdout = &out
+	ocCmdErr := ocCmd.Run()
+	if ocCmdErr != nil {
+		glog.Errorln("Error starting OpenShift: ", ocCmdErr)
 		os.Exit(1)
 	}
+	fmt.Printf("%s", out.String())
 }
 
 func calculateDiskSizeInMB(humanReadableDiskSize string) int {
@@ -140,69 +135,6 @@ func calculateDiskSizeInMB(humanReadableDiskSize string) int {
 		glog.Errorf("Invalid disk size: %s", err)
 	}
 	return int(diskSize / units.MB)
-}
-
-// setupKubeconfig reads config from disk, adds the minikube settings, and writes it back.
-// activeContext is true when minikube is the CurrentContext
-// If no CurrentContext is set, the given name will be used.
-func setupKubeconfig(server, certAuth string) error {
-	configFile := constants.KubeconfigPath
-
-	// read existing config or create new if does not exist
-	config, err := kubeconfig.ReadConfigOrNew(configFile)
-	if err != nil {
-		return err
-	}
-
-	currentContextName := config.CurrentContext
-	currentContext := config.Contexts[currentContextName]
-
-	clusterName, err := ocfg.GetClusterNicknameFromURL(server)
-	if err != nil {
-		return err
-	}
-	cluster := cfg.NewCluster()
-	cluster.Server = server
-	cluster.CertificateAuthorityData = []byte(certAuth)
-	config.Clusters[clusterName] = cluster
-
-	// user
-	userName := "admin/" + clusterName
-	user := cfg.NewAuthInfo()
-	if currentContext != nil && currentContext.AuthInfo == userName {
-		currentUser := config.AuthInfos[userName]
-		if currentUser != nil {
-			user.Token = config.AuthInfos[userName].Token
-		}
-	}
-	config.AuthInfos[userName] = user
-
-	// context
-	context := cfg.NewContext()
-	context.Cluster = clusterName
-	context.AuthInfo = userName
-	context.Namespace = api.NamespaceDefault
-	contextName := ocfg.GetContextNickname(api.NamespaceDefault, clusterName, userName)
-	if currentContext != nil && currentContext.Cluster == clusterName && currentContext.AuthInfo == userName {
-		contextName = currentContextName
-		context.Namespace = currentContext.Namespace
-	}
-	config.Contexts[contextName] = context
-
-	config.CurrentContext = contextName
-
-	// write back to disk
-	if err := kubeconfig.WriteConfig(config, configFile); err != nil {
-		return err
-	}
-
-	fmt.Println("oc is now configured to use the cluster.")
-	if len(user.Token) == 0 {
-		fmt.Println("Run this command to use the cluster: ")
-		fmt.Println("oc login --username=admin --password=admin")
-	}
-
-	return nil
 }
 
 func init() {
@@ -241,8 +173,13 @@ func init() {
 	RootCmd.AddCommand(startCmd)
 }
 
-// TODO figure out the exact meaning of this. Needs to move (HF)
-func defaultPortForwarding() bool {
-	// Defaults to true if running on Mac, with no DOCKER_HOST defined
-	return runtime.GOOS == "darwin" && len(os.Getenv("DOCKER_HOST")) == 0
+func clusterUp() {
+	// TODO various checks around caching bits and pieces and creating the right binary path
+	cmdName := "/Users/hardy/.minishift/cache/oc/1.3.1/oc"
+	cmdArgs := []string{"cluster", "up"}
+
+	cmd := exec.Command(cmdName, cmdArgs...)
+	cmd.Stdout = os.Stdout
+	cmd.Start()
+	cmd.Wait()
 }
