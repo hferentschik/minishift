@@ -18,7 +18,6 @@ package registration
 
 import (
 	"fmt"
-	"github.com/docker/machine/libmachine/drivers"
 	"github.com/docker/machine/libmachine/provision"
 	"strings"
 )
@@ -29,9 +28,9 @@ func init() {
 	})
 }
 
-func NewRedhatRegistrator(d drivers.Driver) Registrator {
+func NewRedhatRegistrator(c provision.SSHCommander) Registrator {
 	return &RedhatRegistrator{
-		SSHCommander: provision.GenericSSHCommander{Driver: d},
+		SSHCommander: c,
 	}
 }
 

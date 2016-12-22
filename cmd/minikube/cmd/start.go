@@ -147,7 +147,9 @@ func runStart(cmd *cobra.Command, args []string) {
 		os.Setenv(k, v)
 	}
 
-	registrator, err := registration.DetectRegistrator(host.Driver)
+	commander := provision.GenericSSHCommander{Driver: host.Driver}
+	registrator, err := registration.DetectRegistrator(commander)
+	
 	if err != nil {
 		fmt.Println("Distribution doesn't support registration")
 	} else {

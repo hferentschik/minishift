@@ -21,6 +21,7 @@ import (
 	"os"
 
 	"github.com/docker/machine/libmachine"
+	"github.com/docker/machine/libmachine/provision"
 	"github.com/minishift/minishift/pkg/minikube/cluster"
 	"github.com/minishift/minishift/pkg/minikube/constants"
 	"github.com/minishift/minishift/pkg/minishift/registration"
@@ -43,7 +44,9 @@ associated files.`,
 			fmt.Println("Errors occurred deleting machine: ", err)
 			os.Exit(1)
 		}
-		registrator, err := registration.DetectRegistrator(host.Driver)
+
+		commander := provision.GenericSSHCommander{Driver: host.Driver}
+		registrator, err := registration.DetectRegistrator(commander)
 		if err != nil {
 			fmt.Println("Distribution doesn't support unregister")
 		} else {

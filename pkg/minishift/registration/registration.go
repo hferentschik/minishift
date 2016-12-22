@@ -19,7 +19,6 @@ package registration
 import (
 	"errors"
 	"fmt"
-	"github.com/docker/machine/libmachine/drivers"
 	"github.com/docker/machine/libmachine/log"
 	"github.com/docker/machine/libmachine/provision"
 )
@@ -31,7 +30,7 @@ var (
 )
 
 type Detector interface {
-	DetectRegistrator(d drivers.Driver) (Registrator, error)
+	DetectRegistrator(c provision.SSHCommander) (Registrator, error)
 }
 
 type StandardRegistrator struct{}
@@ -43,6 +42,7 @@ func SetDetector(newDetector Detector) {
 // Registration defines distribution specific actions
 type Registrator interface {
 	provision.SSHCommander
+
 	// Register
 	Register(map[string]string) error
 
@@ -55,36 +55,31 @@ type Registrator interface {
 
 // RegisteredRegistrator creates a new registrator
 type RegisteredRegistrator struct {
-	New func(d drivers.Driver) Registrator
+	New func(commander provision.SSHCommander) Registrator
 }
 
 func Register(name string, r *RegisteredRegistrator) {
 	registrators[name] = r
 }
 
-func DetectRegistrator(d drivers.Driver) (Registrator, error) {
-	return detector.DetectRegistrator(d)
+func DetectRegistrator(c provision.SSHCommander) (Registrator, error) {
+	return detector.DetectRegistrator(c)
 }
 
-func (detector StandardRegistrator) DetectRegistrator(d drivers.Driver) (Registrator, error) {
-	log.Info("Check SSH connection")
-	if _, err := drivers.RunSSHCommandFromDriver(d, "echo"); err != nil {
-		return nil, err
-	}
-
-	osReleaseOut, err := drivers.RunSSHCommandFromDriver(d, "sudo cat /etc/os-release")
+func (detector StandardRegistrator) DetectRegistrator(c provision.SSHCommander) (Registrator, error) {
+	osReleaseOut, err := c.SSHCommand("sudo cat /etc/os-release")
 	if err != nil {
 		return nil, err
 	}
 	osReleaseInfo, err := provision.NewOsRelease([]byte(osReleaseOut))
 	if err != nil {
-		return nil, fmt.Errorf("Error parshing /etc/os-release file: %s", err)
+		return nil, fmt.Errorf("Error parsing /etc/os-release file: %s", err)
 	}
 
-	log.Info("Detecting the Registration Distro...")
+	log.Info("Selecting registrator")
 
 	for _, r := range registrators {
-		registrator := r.New(d)
+		registrator := r.New(c)
 
 		if registrator.CompatibleWithDistribution(osReleaseInfo) {
 			log.Debugf("found compatible host")
