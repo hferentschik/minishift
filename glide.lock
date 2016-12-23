@@ -1,5 +1,5 @@
-hash: f0f9906056562c5ccea818ad27d50572a73d18ff3ef61c4b389ff12672925272
-updated: 2016-11-29T11:56:31.490022127+01:00
+hash: 6f4be7acaa0691133b0948b471a7fdf160fdd8f6cd133cd89372ca7eb9c509c6
+updated: 2016-12-23T22:16:40.875010788+01:00
 imports:
 - name: github.com/beorn7/perks
   version: 3ac7bf7a47d159a033b107610db8a1b6575507a4
@@ -61,6 +61,7 @@ imports:
   subpackages:
   - commands/mcndirs
   - drivers/errdriver
+  - drivers/fakedriver
   - drivers/hyperv
   - drivers/none
   - drivers/virtualbox
@@ -83,6 +84,7 @@ imports:
   - libmachine/persist
   - libmachine/provision
   - libmachine/provision/pkgaction
+  - libmachine/provision/provisiontest
   - libmachine/provision/serviceaction
   - libmachine/shell
   - libmachine/ssh
@@ -226,6 +228,9 @@ imports:
   - internal/osext
 - name: github.com/inconshreveable/mousetrap
   version: 76626ae9c91c4f2a10f34cad8ce83ea42c93bb75
+- name: github.com/johanneswuerbach/nfsexports
+  version: a9068f3f0daa39616953aec11c3eb1209ebc4086
+  repo: https://github.com/johanneswuerbach/nfsexports
 - name: github.com/jonboulle/clockwork
   version: 3f831b65b61282ba6bece21b91beea2edc4c887a
 - name: github.com/juju/ratelimit
@@ -353,6 +358,17 @@ imports:
   version: e02fc20de94c78484cd5ffb007f8af96be030a45
 - name: github.com/xeipuuv/gojsonschema
   version: 00f9fafb54d2244d291b86ab63d12c38bd5c3886
+- name: github.com/zchee/docker-machine-driver-xhyve
+  version: ab0aebaeba32c3a3ca3c201c1e02dc35dd862c99
+  subpackages:
+  - b2d
+  - vmnet
+  - xhyve
+- name: github.com/zchee/go-qcow2
+  version: 8e1a3e68c1c9ed2739154ea532f50bdba5476f1b
+  repo: https://github.com/zchee/go-qcow2
+  subpackages:
+  - internal/mem
 - name: golang.org/x/crypto
   version: beef0f4390813b96e8e68fd78570396d0f4751fc
   subpackages:
