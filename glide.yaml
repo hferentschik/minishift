@@ -42,6 +42,8 @@ import:
   version: ^0.8.0
 - package: github.com/zchee/docker-machine-driver-xhyve
   version: ^0.3.1
+#- package: github.com/zchee/go-qcow2
+#  version: 8e1a3e68c1c9ed2739154ea532f50bdba5476f1b
 # The following repositories need to be specified explicitly, since the versions referenced by the openshift/origin dependency
 # refer to forks of these projects within the openshift organizaton
 # This needs to be manually updated after upgrading the openshift/origin dependnecy

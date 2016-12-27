@@ -17,12 +17,13 @@ limitations under the License.
 package cluster
 
 import (
+	//"os"
 	"github.com/docker/machine/drivers/vmwarefusion"
 	"github.com/docker/machine/libmachine/drivers"
-	"github.com/docker/machine/libmachine/drivers/plugin"
-	"github.com/docker/machine/libmachine/drivers/plugin/localbinary"
+	//"github.com/docker/machine/libmachine/drivers/plugin"
+	//"github.com/docker/machine/libmachine/drivers/plugin/localbinary"
 	"github.com/minishift/minishift/pkg/minikube/constants"
-	"github.com/zchee/docker-machine-driver-xhyve/xhyve"
+	//"github.com/zchee/docker-machine-driver-xhyve/xhyve"
 )
 
 func createVMwareFusionHost(config MachineConfig) drivers.Driver {
@@ -57,10 +58,11 @@ type xhyveDriver struct {
 func createXhyveHost(config MachineConfig) *xhyveDriver {
 	// Warning, this is a hack. CoreDrivers is a fixed sized array, so we cannot just add an element.
 	// Good thing is we know we want the xhyve driver which we bundle, so we can just set the first element
-	localbinary.CoreDrivers[0] = "xhyve"
+//	localbinary.CoreDrivers[0] = "xhyve"
 
+//	os.Setenv(localbinary.PluginEnvKey, localbinary.PluginEnvVal)
 	// Register the xhyve driver
-	plugin.RegisterDriver(xhyve.NewDriver("", ""))
+	//plugin.RegisterDriver(xhyve.NewDriver("", ""))
 
 	return &xhyveDriver{
 		BaseDriver: &drivers.BaseDriver{

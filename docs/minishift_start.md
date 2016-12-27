@@ -24,18 +24,18 @@ minishift start
       --host-only-cidr string      The CIDR to be used for the minishift VM (only supported with Virtualbox driver) (default "192.168.99.1/24")
       --host-volumes-dir string    Directory on Docker host for OpenShift volumes (default "/var/lib/origin/openshift.local.volumes")
       --insecure-registry value    Insecure Docker registries to pass to the Docker daemon (default [172.30.0.0/16])
-      --iso-url string             Location of the minishift iso (default "https://github.com/minishift/minishift/releases/download/v1.0.0-beta.1/boot2docker.iso")
+      --iso-url string             Location of the minishift iso (default "https://github.com/minishift/minishift/releases/download/vv0.0.0-unset/boot2docker.iso")
       --memory int                 Amount of RAM allocated to the minishift VM (default 2048)
       --metrics                    Install metrics (experimental)
   -e, --openshift-env value        Specify key value pairs of environment variables to set on OpenShift container (default [])
-      --openshift-version string   The OpenShift version that the minishift VM will run (ex: v1.2.3) (default "v1.3.1")
+      --openshift-version string   The OpenShift version that the minishift VM will run (ex: v1.2.3) (default "v0.0.0-unset")
       --public-hostname string     Public hostname for OpenShift cluster
       --registry-mirror value      Registry mirrors to pass to the Docker daemon (default [])
       --routing-suffix string      Default suffix for server routes
       --server-loglevel int        Log level for OpenShift server
       --skip-registry-check        Skip Docker daemon registry check
       --use-existing-config        Use existing configuration if present
-      --vm-driver string           VM driver is one of: [virtualbox vmwarefusion kvm xhyve hyperv] (default "kvm")
+      --vm-driver string           VM driver is one of: [virtualbox vmwarefusion xhyve] (default "xhyve")
 ```
 
 ### Options inherited from parent commands
