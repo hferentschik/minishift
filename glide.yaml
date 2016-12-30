@@ -42,7 +42,7 @@ import:
   version: ^0.8.0
 # The following repositories need to be specified explicitly, since the versions referenced by the openshift/origin dependency
 # refer to forks of these projects within the openshift organizaton
-# This needs to be manually updated after upgrading the openshift/origin dependnecy
+# This needs to be manually updated after upgrading the openshift/origin dependency
 - package: k8s.io/kubernetes
   version: 52492b4bff99ef3b8ca617d385a3ff0612f9402d
   repo: https://github.com/openshift/kubernetes.git
@@ -70,3 +70,13 @@ import:
   version: 335da9dda11408a34b64344f82e9c03779b71673
   repo: https://github.com/openshift/glog.git
   vcs: git
+- package: github.com/stretchr/testify
+  version: 69483b4bd14f5845b5a1e55bca19e954e827f1d0
+  vcs: git
+  import:
+  - package: github.com/davecgh/go-spew/spew
+    version: 6d212800a42e8ab5c146b8ace3490ee17e5225f9
+  - package: github.com/pmezard/go-difflib/difflib
+    version: d8ed2627bdf02c080bf22230dbb337003b7aba2d
+  - package: github.com/stretchr/objx
+    version: cbeaeb16a013161a98496fad62933b1d21786672
