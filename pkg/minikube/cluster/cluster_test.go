@@ -21,7 +21,6 @@ import (
 	"github.com/stretchr/testify/assert"
 	"github.com/minishift/minishift/pkg/minikube/constants"
 	"path/filepath"
-	"fmt"
 )
 
 func TestRemoteBoot2DockerURL(t *testing.T) {
