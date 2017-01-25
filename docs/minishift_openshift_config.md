@@ -1,21 +1,20 @@
-## minishift openshift patch
+## minishift openshift config
 
-Patches the specified OpenShift configuration resource.
+Displays the specified OpenShift configuration resource.
 
 ### Synopsis
 
 
-Patches the specified OpenShift configuration resource.
+Displays the specified OpenShift configuration resource.
 
 ```
-minishift openshift patch
+minishift openshift config
 ```
 
 ### Options
 
 ```
-      --patch string    The patch to apply
-      --target string   Target configuration to patch. Either 'master' or 'node'. (default "master")
+      --target string   Target configuration to display. Either 'master' or 'node'. (default "master")
 ```
 
 ### Options inherited from parent commands

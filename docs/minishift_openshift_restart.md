@@ -1,21 +1,14 @@
-## minishift openshift patch
+## minishift openshift restart
 
-Patches the specified OpenShift configuration resource.
+Restarts the OpenShift cluster.
 
 ### Synopsis
 
 
-Patches the specified OpenShift configuration resource.
+Restarts the OpenShift cluster, keeping the VM alive.
 
 ```
-minishift openshift patch
-```
-
-### Options
-
-```
-      --patch string    The patch to apply
-      --target string   Target configuration to patch. Either 'master' or 'node'. (default "master")
+minishift openshift restart
 ```
 
 ### Options inherited from parent commands
