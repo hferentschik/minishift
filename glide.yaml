@@ -1,3 +1,4 @@
+# For help with Glide's versions and ranges - http://glide.readthedocs.io/en/latest/versions
 package: github.com/minishift/minishift
 import:
 - package: github.com/docker/machine
@@ -54,8 +55,12 @@ import:
   - ssh
 - package: golang.org/x/oauth2
 - package: gopkg.in/cheggaaa/pb.v1
-- package: github.com/asaskevich/govalidator/
+- package: github.com/asaskevich/govalidator
   version: 5
+- package: github.com/stretchr/testify
+  version: 1.1.4
+- package: github.com/pmezard/go-difflib
+  version: 1.0.0
 # The following repositories need to be specified explicitly, since the versions referenced by the openshift/origin dependency
 # refer to forks of these projects within the openshift organizaton
 # This needs to be manually updated after upgrading the openshift/origin dependnecy

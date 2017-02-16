@@ -1,5 +1,5 @@
-hash: 46fc49d480280fcc65a75b549f3b15078b0bf5a76f5220e50faf54386a23c6e8
-updated: 2017-02-14T13:26:16.96813836+05:30
+hash: 6ecc9016bea86d16646e52c87f28edf3df427a41091c1b8988d3cedc75393cc3
+updated: 2017-02-16T16:53:32.474443129+01:00
 imports:
 - name: github.com/asaskevich/govalidator
   version: 7b3beb6df3c42abd3509abfc3bcacc0fbfb7c877
@@ -16,6 +16,7 @@ imports:
 - name: github.com/coreos/go-systemd
   version: 4484981625c1a6a2ecb40a390fcb6a9bcfee76e3
   subpackages:
+  - activation
   - daemon
   - dbus
   - journal
@@ -38,78 +39,16 @@ imports:
   subpackages:
   - spew
 - name: github.com/docker/distribution
-  version: 12acdf0a6c1e56d965ac6eb395d2bce687bf22fc
+  version: cd27f179f2c10c5d300e6d09025b538c475b0d51
   subpackages:
-  - configuration
-  - context
   - digest
-  - health
-  - health/checks
-  - manifest
-  - manifest/manifestlist
-  - manifest/schema1
-  - manifest/schema2
-  - notifications
   - reference
-  - registry/api/errcode
-  - registry/api/v2
-  - registry/auth
-  - registry/auth/htpasswd
-  - registry/auth/token
-  - registry/client
-  - registry/client/auth
-  - registry/client/transport
-  - registry/handlers
-  - registry/middleware/registry
-  - registry/middleware/repository
-  - registry/proxy
-  - registry/proxy/scheduler
-  - registry/storage
-  - registry/storage/cache
-  - registry/storage/cache/memory
-  - registry/storage/cache/redis
-  - registry/storage/driver
-  - registry/storage/driver/azure
-  - registry/storage/driver/base
-  - registry/storage/driver/factory
-  - registry/storage/driver/filesystem
-  - registry/storage/driver/gcs
-  - registry/storage/driver/inmemory
-  - registry/storage/driver/middleware
-  - registry/storage/driver/middleware/cloudfront
-  - registry/storage/driver/oss
-  - registry/storage/driver/s3-aws
-  - registry/storage/driver/swift
-  - uuid
-  - version
 - name: github.com/docker/docker
   version: a8a31eff10544860d2188dddabdee4d727545796
   subpackages:
   - pkg/term
-- name: github.com/docker/engine-api
-  version: dea108d3aa0c67d7162a3fd8aa65f38a430019fd
-  subpackages:
-  - client
-  - client/transport
-  - client/transport/cancellable
-  - types
-  - types/blkiodev
-  - types/container
-  - types/filters
-  - types/network
-  - types/reference
-  - types/registry
-  - types/strslice
-  - types/time
-  - types/versions
-- name: github.com/docker/go-connections
-  version: f549a9393d05688dff0992ef3efd8bbe6c628aeb
-  subpackages:
-  - nat
-  - sockets
-  - tlsconfig
 - name: github.com/docker/go-units
-  version: 0dadbb0345b35ec7ef35e228dabb8de89a65bf52
+  version: 0bbddae09c5a5419a8c6dcdd7ff90da3d450393b
 - name: github.com/docker/machine
   version: 15fd4c70403bab784d91031af02d9e169ce66412
   subpackages:
@@ -154,26 +93,6 @@ imports:
   - swagger
 - name: github.com/fsnotify/fsnotify
   version: 3c39c22b2c7b0516d5f2553f1608e5d13cb19053
-- name: github.com/fsouza/go-dockerclient
-  version: bf97c77db7c945cbcdbf09d56c6f87a66f54537b
-  subpackages:
-  - external/github.com/Sirupsen/logrus
-  - external/github.com/docker/docker/opts
-  - external/github.com/docker/docker/pkg/archive
-  - external/github.com/docker/docker/pkg/fileutils
-  - external/github.com/docker/docker/pkg/homedir
-  - external/github.com/docker/docker/pkg/idtools
-  - external/github.com/docker/docker/pkg/ioutils
-  - external/github.com/docker/docker/pkg/longpath
-  - external/github.com/docker/docker/pkg/pools
-  - external/github.com/docker/docker/pkg/promise
-  - external/github.com/docker/docker/pkg/stdcopy
-  - external/github.com/docker/docker/pkg/system
-  - external/github.com/docker/go-units
-  - external/github.com/hashicorp/go-cleanhttp
-  - external/github.com/opencontainers/runc/libcontainer/user
-  - external/golang.org/x/net/context
-  - external/golang.org/x/sys/unix
 - name: github.com/ghodss/yaml
   version: 73d445a93680fa1a78ae23a5839bad48f32ba1ee
 - name: github.com/gogo/protobuf
@@ -217,6 +136,7 @@ imports:
   subpackages:
   - api
   - cache/memory
+  - client/v2
   - collector
   - container
   - container/common
@@ -232,6 +152,7 @@ imports:
   - http
   - http/mux
   - info/v1
+  - info/v1/test
   - info/v2
   - machine
   - manager
@@ -285,7 +206,7 @@ imports:
 - name: github.com/inconshreveable/mousetrap
   version: 76626ae9c91c4f2a10f34cad8ce83ea42c93bb75
 - name: github.com/jonboulle/clockwork
-  version: 3f831b65b61282ba6bece21b91beea2edc4c887a
+  version: 72f9bd7c4e0c2a40055ab3d0f09654f730cce982
 - name: github.com/jteeuwen/go-bindata
   version: bbd0c6e271208dce66d8fda4bc536453cd27fc4a
 - name: github.com/juju/ratelimit
@@ -296,71 +217,14 @@ imports:
   version: b3b15ef068fd0b17ddf408a23669f20811d194d2
 - name: github.com/mattn/go-runewidth
   version: 14207d285c6c197daabb5c9793d63e7af9ab2d50
-- name: github.com/Microsoft/go-winio
-  version: 4f1a71750d95a5a8a46c40a67ffbed8129c2f138
 - name: github.com/mitchellh/mapstructure
   version: db1efb556f84b25a0a13a04aad883943538ad2e0
 - name: github.com/olekukonko/tablewriter
   version: febf2d34b54a69ce7530036c7503b1c9fbfdf0bb
-- name: github.com/opencontainers/runc
-  version: 74317eaa20cf37eb2c762dc98b01e3e0b4d5e598
-  subpackages:
-  - libcontainer
-  - libcontainer/apparmor
-  - libcontainer/cgroups
-  - libcontainer/cgroups/fs
-  - libcontainer/cgroups/systemd
-  - libcontainer/configs
-  - libcontainer/configs/validate
-  - libcontainer/criurpc
-  - libcontainer/keys
-  - libcontainer/label
-  - libcontainer/seccomp
-  - libcontainer/selinux
-  - libcontainer/stacktrace
-  - libcontainer/system
-  - libcontainer/user
-  - libcontainer/utils
-- name: github.com/openshift/imagebuilder
-  version: 74238f0cbdc0d7296d2a826d4d2f6a9f79084f82
-  subpackages:
-  - dockerclient
-  - imageprogress
-  - signal
-  - strslice
 - name: github.com/openshift/origin
   version: 3f9807ab8282e1af64128834b246c41ce50172d4
   subpackages:
-  - pkg/bootstrap/docker/dockerhelper
-  - pkg/bootstrap/docker/errors
   - pkg/bootstrap/docker/host
-  - pkg/bootstrap/docker/run
-  - pkg/cmd/util/prefixwriter
-- name: github.com/openshift/source-to-image
-  version: 5741384e376d9c61b5b36156003ede6698ca563b
-  subpackages:
-  - pkg/api
-  - pkg/api/describe
-  - pkg/api/validation
-  - pkg/build
-  - pkg/build/strategies
-  - pkg/build/strategies/layered
-  - pkg/build/strategies/onbuild
-  - pkg/build/strategies/sti
-  - pkg/docker
-  - pkg/errors
-  - pkg/ignore
-  - pkg/scm
-  - pkg/scm/empty
-  - pkg/scm/file
-  - pkg/scm/git
-  - pkg/scripts
-  - pkg/tar
-  - pkg/test
-  - pkg/util
-  - pkg/util/glog
-  - pkg/util/interrupt
-  - pkg/util/user
 - name: github.com/pborman/uuid
   version: ca53cad383cad2479bbba7f7a1a05797ec1386e4
 - name: github.com/pelletier/go-buffruneio
@@ -371,16 +235,16 @@ imports:
   version: 8189194c9f158043d6d45a0b939a47a924ea4b13
 - name: github.com/pkg/errors
   version: 645ef00459ed84a119197bfb8d8205042c6df63d
+- name: github.com/pmezard/go-difflib
+  version: 792786c7400a136282c1664665ae0a8db921c6c2
+  subpackages:
+  - difflib
 - name: github.com/russross/blackfriday
   version: 300106c228d52c8941d4b3de6054a6062a86dda3
 - name: github.com/samalba/dockerclient
   version: f661dd4754aa5c52da85d04b5871ee0e11f4b59c
 - name: github.com/shurcooL/sanitized_anchor_name
   version: 10ef21a441db47d8b13ebcc5fd2310f636973c77
-- name: github.com/Sirupsen/logrus
-  version: aaf92c95712104318fc35409745f1533aa5ff327
-  subpackages:
-  - formatters/logstash
 - name: github.com/spf13/afero
   version: 72b31426848c6ef12a7a8e216708cb0d1530f074
   subpackages:
@@ -397,10 +261,16 @@ imports:
   version: 9ff6c6923cfffbcd502984b8e0c80539a94968b7
 - name: github.com/spf13/viper
   version: 382f87b929b84ce13e9c8a375a4b217f224e6c65
+- name: github.com/stretchr/testify
+  version: 69483b4bd14f5845b5a1e55bca19e954e827f1d0
+  subpackages:
+  - assert
+  - mock
 - name: github.com/ugorji/go
-  version: f4485b318aadd133842532f841dc205a8e339d74
+  version: f1f1a805ed361a0e078bb537e4ea78cd37dcf065
   subpackages:
   - codec
+  - codec/codecgen
 - name: github.com/xeipuuv/gojsonschema
   version: 6b67b3fab74d992bd07f72550006ab2c6907c416
 - name: golang.org/x/crypto
@@ -416,7 +286,6 @@ imports:
   - context/ctxhttp
   - http2
   - http2/hpack
-  - proxy
 - name: golang.org/x/oauth2
   version: 442624c9ec9243441e83b374a9e22ac549b5c51d
   subpackages:
@@ -427,10 +296,9 @@ imports:
 - name: golang.org/x/sys
   version: d9157a9621b69ad1d8d77a1933590c416593f24f
   subpackages:
-  - windows
   - windows/registry
 - name: golang.org/x/text
-  version: ceefd2213ed29504fff30155163c8f59827734f3
+  version: 2910a502d2bf9e43193af9d68ca516529614eed3
   subpackages:
   - cases
   - internal/tag
@@ -468,24 +336,9 @@ imports:
 - name: k8s.io/client-go
   version: d72c0e162789e1bbb33c33cfa26858a1375efe01
   subpackages:
-  - 1.4/discovery
-  - 1.4/dynamic
-  - 1.4/kubernetes
-  - 1.4/kubernetes/typed/apps/v1alpha1
-  - 1.4/kubernetes/typed/authentication/v1beta1
-  - 1.4/kubernetes/typed/authorization/v1beta1
-  - 1.4/kubernetes/typed/autoscaling/v1
-  - 1.4/kubernetes/typed/batch/v1
-  - 1.4/kubernetes/typed/certificates/v1alpha1
-  - 1.4/kubernetes/typed/core/v1
-  - 1.4/kubernetes/typed/extensions/v1beta1
-  - 1.4/kubernetes/typed/policy/v1alpha1
-  - 1.4/kubernetes/typed/rbac/v1alpha1
-  - 1.4/kubernetes/typed/storage/v1beta1
   - 1.4/pkg/api
   - 1.4/pkg/api/endpoints
   - 1.4/pkg/api/errors
-  - 1.4/pkg/api/install
   - 1.4/pkg/api/meta
   - 1.4/pkg/api/meta/metatypes
   - 1.4/pkg/api/pod
@@ -498,53 +351,15 @@ imports:
   - 1.4/pkg/api/validation
   - 1.4/pkg/apimachinery
   - 1.4/pkg/apimachinery/registered
-  - 1.4/pkg/apis/apps
-  - 1.4/pkg/apis/apps/install
-  - 1.4/pkg/apis/apps/v1alpha1
-  - 1.4/pkg/apis/authentication
-  - 1.4/pkg/apis/authentication/install
-  - 1.4/pkg/apis/authentication/v1beta1
-  - 1.4/pkg/apis/authorization
-  - 1.4/pkg/apis/authorization/install
-  - 1.4/pkg/apis/authorization/v1beta1
   - 1.4/pkg/apis/autoscaling
-  - 1.4/pkg/apis/autoscaling/install
-  - 1.4/pkg/apis/autoscaling/v1
   - 1.4/pkg/apis/batch
-  - 1.4/pkg/apis/batch/install
-  - 1.4/pkg/apis/batch/v1
-  - 1.4/pkg/apis/batch/v2alpha1
-  - 1.4/pkg/apis/certificates
-  - 1.4/pkg/apis/certificates/install
-  - 1.4/pkg/apis/certificates/v1alpha1
-  - 1.4/pkg/apis/componentconfig
-  - 1.4/pkg/apis/componentconfig/install
-  - 1.4/pkg/apis/componentconfig/v1alpha1
   - 1.4/pkg/apis/extensions
-  - 1.4/pkg/apis/extensions/install
-  - 1.4/pkg/apis/extensions/v1beta1
-  - 1.4/pkg/apis/imagepolicy
-  - 1.4/pkg/apis/imagepolicy/install
-  - 1.4/pkg/apis/imagepolicy/v1alpha1
-  - 1.4/pkg/apis/policy
-  - 1.4/pkg/apis/policy/install
-  - 1.4/pkg/apis/policy/v1alpha1
-  - 1.4/pkg/apis/rbac
-  - 1.4/pkg/apis/rbac/install
-  - 1.4/pkg/apis/rbac/v1alpha1
-  - 1.4/pkg/apis/storage
-  - 1.4/pkg/apis/storage/install
-  - 1.4/pkg/apis/storage/v1beta1
   - 1.4/pkg/auth/user
   - 1.4/pkg/capabilities
   - 1.4/pkg/conversion
   - 1.4/pkg/conversion/queryparams
   - 1.4/pkg/fields
-  - 1.4/pkg/kubelet/qos
-  - 1.4/pkg/kubelet/server/portforward
-  - 1.4/pkg/kubelet/types
   - 1.4/pkg/labels
-  - 1.4/pkg/master/ports
   - 1.4/pkg/runtime
   - 1.4/pkg/runtime/serializer
   - 1.4/pkg/runtime/serializer/json
@@ -554,20 +369,16 @@ imports:
   - 1.4/pkg/runtime/serializer/versioning
   - 1.4/pkg/security/apparmor
   - 1.4/pkg/selection
-  - 1.4/pkg/third_party/forked/golang/json
   - 1.4/pkg/third_party/forked/golang/reflect
   - 1.4/pkg/types
   - 1.4/pkg/util
   - 1.4/pkg/util/clock
   - 1.4/pkg/util/config
   - 1.4/pkg/util/crypto
-  - 1.4/pkg/util/diff
   - 1.4/pkg/util/errors
   - 1.4/pkg/util/flowcontrol
   - 1.4/pkg/util/framer
   - 1.4/pkg/util/hash
-  - 1.4/pkg/util/homedir
-  - 1.4/pkg/util/httpstream
   - 1.4/pkg/util/integer
   - 1.4/pkg/util/intstr
   - 1.4/pkg/util/json
@@ -578,7 +389,6 @@ imports:
   - 1.4/pkg/util/rand
   - 1.4/pkg/util/runtime
   - 1.4/pkg/util/sets
-  - 1.4/pkg/util/strategicpatch
   - 1.4/pkg/util/uuid
   - 1.4/pkg/util/validation
   - 1.4/pkg/util/validation/field
@@ -707,4 +517,6 @@ imports:
   - plugin/pkg/client/auth/gcp
   - plugin/pkg/client/auth/oidc
   - third_party/forked/golang/reflect
-testImports: []
+testImports:
+- name: github.com/stretchr/objx
+  version: 1a9d0bb9f541897e62256577b352fdbc1fb4fd94
