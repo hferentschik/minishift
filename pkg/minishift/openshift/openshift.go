@@ -19,10 +19,10 @@ package openshift
 import (
 	"errors"
 	"fmt"
+	"github.com/golang/glog"
 	"github.com/minishift/minishift/pkg/minishift/docker"
 	"github.com/pborman/uuid"
 	"strings"
-	"github.com/golang/glog"
 )
 
 const OPENSHIFT_CONTAINER_NAME = "origin"
@@ -31,8 +31,8 @@ const OPENSHIFT_EXEC = "/usr/bin/openshift"
 type OpenShiftPatchTarget struct {
 	target              string
 	containerConfigFile string
-	localConfigFile string
-	ip              string
+	localConfigFile     string
+	ip                  string
 }
 
 var (

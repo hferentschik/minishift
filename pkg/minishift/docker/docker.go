@@ -20,10 +20,10 @@ import (
 	"fmt"
 	"github.com/docker/machine/libmachine/provision"
 	"github.com/golang/glog"
-	"github.com/pkg/errors"
 	"github.com/minishift/minishift/pkg/util"
-	"time"
+	"github.com/pkg/errors"
 	"strings"
+	"time"
 )
 
 type DockerCommander interface {
@@ -131,7 +131,7 @@ func (c VmDockerCommander) Restart(container string) (bool, error) {
 		return nil
 	}
 
-	err = util.RetryAfter(5, retry, 1 * time.Second)
+	err = util.RetryAfter(5, retry, 1*time.Second)
 	if err != nil {
 		return false, err
 	}
@@ -169,4 +169,3 @@ func (c VmDockerCommander) Status(container string) (string, error) {
 func (c VmDockerCommander) logCommand(cmd string) {
 	glog.V(2).Info(fmt.Sprintf("Executing docker command: '%s'", cmd))
 }
-

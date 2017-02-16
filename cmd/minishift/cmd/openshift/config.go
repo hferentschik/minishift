@@ -28,7 +28,7 @@ import (
 	"github.com/minishift/minishift/pkg/minikube/constants"
 	"github.com/minishift/minishift/pkg/minishift/docker"
 	"github.com/minishift/minishift/pkg/minishift/openshift"
-	"github.com/minishift/minishift/pkg/minishift/util"
+	"github.com/minishift/minishift/pkg/util/os/atexit"
 )
 
 const (
@@ -57,7 +57,7 @@ func runConfig(cmd *cobra.Command, args []string) {
 	configFileTarget := determineTarget(configTarget)
 	if configFileTarget == openshift.UNKNOWN {
 		fmt.Println(unknownConfigTargetError)
-		util.Exit(1)
+		atexit.Exit(1)
 	}
 
 	api := libmachine.NewClient(constants.Minipath, constants.MakeMiniPath("certs"))
@@ -66,13 +66,13 @@ func runConfig(cmd *cobra.Command, args []string) {
 	host, err := cluster.CheckIfApiExistsAndLoad(api)
 	if err != nil {
 		fmt.Println(nonExistentMachineError)
-		util.Exit(1)
+		atexit.Exit(1)
 	}
 
 	ip, err := host.Driver.GetIP()
 	if err != nil {
 		fmt.Println(unableToRetrieveIpErrror)
-		util.Exit(1)
+		atexit.Exit(1)
 	}
 	configFileTarget.SetIp(ip)
 
@@ -82,7 +82,7 @@ func runConfig(cmd *cobra.Command, args []string) {
 	out, err := openshift.ViewConfig(configFileTarget, dockerCommander)
 	if err != nil {
 		glog.Errorln("Unable to display OpenShift configuration: ", err)
-		util.Exit(1)
+		atexit.Exit(1)
 	}
 
 	fmt.Println(out)
