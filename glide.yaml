@@ -1,4 +1,6 @@
 package: github.com/minishift/minishift
+homepage: https://github.com/minishift/minishift
+license: Apache-2.0
 import:
 - package: github.com/docker/machine
   version: 0.9.0
@@ -30,7 +32,6 @@ import:
 - package: github.com/inconshreveable/go-update
 - package: github.com/mitchellh/mapstructure
   version: db1efb556f84b25a0a13a04aad883943538ad2e0
-- package: github.com/kardianos/osext
 - package: github.com/olekukonko/tablewriter
 - package: github.com/pkg/browser
 # Latest viper have issue with IsSet: https://github.com/spf13/viper/issues/276
@@ -56,6 +57,13 @@ import:
 - package: gopkg.in/cheggaaa/pb.v1
 - package: github.com/asaskevich/govalidator/
   version: 5
+
+- package: github.com/kardianos/osext
+  version: 9b883c5eb462dd5cb1b0a7a104fe86bc6b9bd391
+- package: github.com/pkg/sftp
+  ref: 1189af57876f9ce079097fe9f33a7cd9488df41d
+  vcs: git
+
 # The following repositories need to be specified explicitly, since the versions referenced by the openshift/origin dependency
 # refer to forks of these projects within the openshift organizaton
 # This needs to be manually updated after upgrading the openshift/origin dependnecy
