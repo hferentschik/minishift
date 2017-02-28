@@ -125,6 +125,12 @@ _glide.lock_ file which you then check in together with the updated _glide.yaml_
 
 Double check everything still compiles with the new lock file in place.
 
+In some cases Glide does not properly reset the state of its cache, leading for unexpected versions
+ending up in _glide.lock_. In this occurs or to be generally on the safe side, one can clear the 
+Glide cache prior to updating any dependencies:
+
+    $ glide cc
+
 <a name="building-minishift"></a>
 ## Building Minishift
 
