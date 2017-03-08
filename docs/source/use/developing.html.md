@@ -22,6 +22,7 @@ The following paragraphs describe how to build and release Minishift.
   - [Formatting the source](#formatting-the-source)
   - [Cleaning all](#cleaning-all)
   - [Building Minishift Documentation](#building-minishift-documentation)
+  - [Deploying Minishift Documentation](#deploying-minishift-documentation)
 - [CI Setup](#ci-setup)
 - [Releasing Minishift](#releasing-minishift)
   - [Prerequisites](#prerequisites-1)
@@ -223,22 +224,33 @@ To remove all generated artifacts and installed dependencies, run:
 <a name="building-minishift-documentation"></a>
 ### Building Minishift Documentation
 
-Minishift documentation is built using a Docker container that provides all tools necessary for the various format conversions, HTML building, and serving of the final content. To build the image from which the container can be run, use the `Dockerfile` located in `minishift/docs/build`.
+Minishift documentation is located in the `docs` sub-folder. The documentation is a mix of generated
+[Markdown](https://en.wikipedia.org/wiki/Markdown) files and manually maintained [Asciidoc](https://en.wikipedia.org/wiki/AsciiDoc) files.
 
-Build the image:
+Per default the documentation is build in a Docker container. This way you avoid having to install all
+required dependencies on your development machine. All you need is a running Docker daemon. In case you
+don't have one, use Minishift itself. See (TODO reference to the Minishift as Docker daemon from README.
+Needs to be extracted).
 
-    $ cd minishift/docs/build
-    $ docker build -t <image-name> .
+To build the Docker image, run:
 
-Run the image to show basic usage help:
+    $ make build_docs_container
 
-    $ docker run <image-name>
+To generate the documentation into the directory `docs/build`, run:
 
-Run the image to build the documentation:
+    $ make gen_docs
 
-    $ cd minishift/
-    $ docker run -tiv "$PWD"/docs:/tmp/docs:Z <container-id> build
+To build and serve the documentation for editing, run:
 
+    $ make serve_docs
+
+The latter will start the [Middleman](https://middlemanapp.com) server on port 4567. You can access
+the rendered documentation by browsing to http://\<IP of Docker daemon\>:4567.
+
+<a name="deploying-minishift-documentation"></a>
+### Deploying Minishift Documentation
+
+TBD
 
 <a name="ci-setup"></a>
 ## CI Setup
