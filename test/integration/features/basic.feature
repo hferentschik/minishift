@@ -15,9 +15,9 @@ Feature: Basic
      Then stderr should be empty
       And exitcode should equal 0
       And stdout should contain
-     """
-     sudoer
-     """
+      """
+      sudoer
+      """
 
   Scenario: A 'minishift' context is created for 'oc' usage
     After a successful Minishift start the user's current context is 'minishift'
@@ -25,9 +25,9 @@ Feature: Basic
     Then stderr should be empty
      And exitcode should equal 0
      And stdout should contain
-    """
-    minishift
-    """
+     """
+     minishift
+     """
 
   Scenario: User can switch the current 'oc' context and return to 'minishift' context
     Given executing "oc config set-context dummy"
@@ -39,9 +39,9 @@ Feature: Basic
      Then stderr should be empty
       And exitcode should equal 0
       And stdout should contain
-    """
-    minishift
-    """
+      """
+      minishift
+      """
 
   Scenario: User is able to do ssh into Minishift VM
     Given Minishift has state "Running"
@@ -63,6 +63,15 @@ Feature: Basic
       export "FOO=BAR"
       export "BAZ=BAT"
       """
+
+  Scenario: User is able to get url on running service command
+    Given Minishift has state "Running"
+     When executing "oc new-app https://github.com/openshift/nodejs-ex"
+      And executing "oc expose svc/nodejs-ex"
+      And executing "minishift openshift service nodejs-ex -n myproject --url"
+     Then stdout should match /nodejs-ex-myproject.(.*).nip.io/
+      And executing "minishift openshift service list"
+     Then stdout should match /nodejs-ex-myproject.(.*).nip.io/
 
   Scenario: Stopping Minishift
     Given Minishift has state "Running"
