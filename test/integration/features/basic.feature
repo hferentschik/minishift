@@ -64,10 +64,31 @@ Feature: Basic
       export "BAZ=BAT"
       """
 
-  Scenario: User is able to get url on running service command
+  Scenario: User has the choice of some basic templates
     Given Minishift has state "Running"
-     When executing "oc new-app https://github.com/openshift/nodejs-ex"
+     When executing "oc --as system:admin get imagestream -n openshift"
+     Then stdout should contain
+     """
+     nodejs
+     """
+      And stdout should contain
+      """
+      ruby
+      """
+      And stdout should contain
+      """
+      wildfly
+      """
+      And stdout should contain
+      """
+      python
+      """
+
+  Scenario: User is able to print service url
+    Given Minishift has state "Running"
+     When executing "oc new-app https://github.com/openshift/nodejs-ex --allow-missing-imagestream-tags"
       And executing "oc expose svc/nodejs-ex"
+      And waiting for 3 seconds
       And executing "minishift openshift service nodejs-ex -n myproject --url"
      Then stdout should match /nodejs-ex-myproject.(.*).nip.io/
       And executing "minishift openshift service list"

@@ -32,6 +32,7 @@ import (
 	"github.com/DATA-DOG/godog/gherkin"
 
 	"github.com/minishift/minishift/test/integration/util"
+	"time"
 )
 
 var lastCommandOutput CommandOutput
@@ -41,6 +42,10 @@ type CommandOutput struct {
 	StdOut   string
 	StdErr   string
 	ExitCode int
+}
+
+func (co *CommandOutput) String() string {
+	return fmt.Sprintf("%#v", co)
 }
 
 type Minishift struct {
@@ -78,6 +83,7 @@ func (m *Minishift) executingOcCommand(command string) error {
 		cmdErr,
 		cmdExit,
 	}
+	fmt.Println(lastCommandOutput)
 
 	return nil
 }
@@ -157,7 +163,18 @@ func (m *Minishift) commandReturnShouldBeEmpty(commandField string) error {
 }
 
 func (m *Minishift) commandOutputShouldMatch(commandField string, expectedMatch string) error {
+	fmt.Println("Last output: " + selectFieldFromLastOutput(commandField))
 	return findExpectedMatchInActual(expectedMatch, selectFieldFromLastOutput(commandField))
+}
+
+func (m *Minishift) wait(s string) error {
+	i, err := strconv.Atoi(s);
+	if err != nil {
+		fmt.Errorf("Unable to convert sleep time paramteter '%s' to int", s)
+	}
+	fmt.Println(fmt.Sprintf("Sleeping %d sedonds", i))
+	time.Sleep(time.Duration(i) * time.Second)
+	return nil
 }
 
 func FeatureContext(s *godog.Suite) {
@@ -181,6 +198,7 @@ func FeatureContext(s *godog.Suite) {
 	s.Step(`([^"]*) should equal`, m.commandReturnShouldEqualContent)
 	s.Step(`([^"]*) should be empty`, m.commandReturnShouldBeEmpty)
 	s.Step(`([^"]*) should match /([^"]*)/`, m.commandOutputShouldMatch)
+	s.Step(`waiting for ([0-9]+) seconds`, m.wait)
 
 	s.BeforeSuite(func() {
 		testDir := setUp()
