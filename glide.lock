@@ -1,10 +1,75 @@
-hash: 6a0a130708f2016852df8585f50417d3396421a9c8854f35f59b6a524f079597
-updated: 2017-04-25T11:38:02.17820093+05:30
+hash: f826a2643ef9905ede13b878b4ff543c569a1ee7d3fedcad37895fe3adeadf93
+updated: 2017-05-16T13:02:23.446045473+02:00
 imports:
 - name: github.com/asaskevich/govalidator
   version: 7b3beb6df3c42abd3509abfc3bcacc0fbfb7c877
+- name: github.com/Azure/go-ansiterm
+  version: fa152c58bc15761d0200cb75fe958b89a9d4888e
+  subpackages:
+  - winterm
 - name: github.com/blang/semver
   version: b38d23b8782a487059e8fc8773e9a5b228a77cb6
+- name: github.com/containers/image
+  version: c5b423957ee1583aa3dad1b78f757a9c1b6025c4
+  subpackages:
+  - copy
+  - directory
+  - directory/explicitfilepath
+  - docker
+  - docker/archive
+  - docker/daemon
+  - docker/policyconfiguration
+  - docker/reference
+  - docker/tarfile
+  - image
+  - manifest
+  - oci/layout
+  - openshift
+  - ostree
+  - pkg/compression
+  - pkg/strslice
+  - signature
+  - storage
+  - transports
+  - transports/alltransports
+  - types
+  - version
+- name: github.com/containers/storage
+  version: d10d8680af74070b362637408a7fe28c4b1f1eff
+  subpackages:
+  - drivers
+  - drivers/aufs
+  - drivers/btrfs
+  - drivers/devmapper
+  - drivers/overlay
+  - drivers/register
+  - drivers/vfs
+  - drivers/windows
+  - drivers/zfs
+  - pkg/archive
+  - pkg/chrootarchive
+  - pkg/devicemapper
+  - pkg/directory
+  - pkg/fileutils
+  - pkg/homedir
+  - pkg/idtools
+  - pkg/ioutils
+  - pkg/longpath
+  - pkg/loopback
+  - pkg/mount
+  - pkg/parsers
+  - pkg/parsers/kernel
+  - pkg/plugins
+  - pkg/plugins/transport
+  - pkg/pools
+  - pkg/promise
+  - pkg/random
+  - pkg/reexec
+  - pkg/stringid
+  - pkg/system
+  - pkg/truncindex
+  - storage
+  - storageversion
 - name: github.com/cpuguy83/go-md2man
   version: a65d4d2de4d5f7c74868dfa9b202a3c8be315aaa
   subpackages:
@@ -14,12 +79,51 @@ imports:
   subpackages:
   - colors
   - gherkin
-- name: github.com/docker/docker
-  version: a8a31eff10544860d2188dddabdee4d727545796
+- name: github.com/docker/distribution
+  version: df5327f76fb6468b84a87771e361762b8be23fdb
   subpackages:
+  - context
+  - digestset
+  - reference
+  - registry/api/errcode
+  - registry/api/v2
+  - registry/client
+  - registry/client/auth/challenge
+  - registry/client/transport
+  - registry/storage/cache
+  - registry/storage/cache/memory
+  - uuid
+- name: github.com/docker/docker
+  version: 75843d36aa5c3eaade50da005f9e0ff2602f3d5e
+  subpackages:
+  - api/types
+  - api/types/blkiodev
+  - api/types/container
+  - api/types/events
+  - api/types/filters
+  - api/types/image
+  - api/types/mount
+  - api/types/network
+  - api/types/registry
+  - api/types/strslice
+  - api/types/swarm
+  - api/types/time
+  - api/types/versions
+  - api/types/volume
+  - client
   - pkg/term
+  - pkg/term/windows
+  - pkg/tlsconfig
+- name: github.com/docker/go-connections
+  version: 7da10c8c50cad14494ec818dcdfb6506265c0086
+  subpackages:
+  - nat
+  - sockets
+  - tlsconfig
 - name: github.com/docker/go-units
   version: 0bbddae09c5a5419a8c6dcdd7ff90da3d450393b
+- name: github.com/docker/libtrust
+  version: aabc10ec26b754e797f9028f4589c5b7bd90dc20
 - name: github.com/docker/machine
   version: 15fd4c70403bab784d91031af02d9e169ce66412
   subpackages:
@@ -59,6 +163,8 @@ imports:
   - version
 - name: github.com/fsnotify/fsnotify
   version: 4da3e2cfbabc9f751898f250b49f2439785783a1
+- name: github.com/ghodss/yaml
+  version: 0ca9ea5df5451ffdf184b4428c902747c2c11cd7
 - name: github.com/golang/glog
   version: 335da9dda11408a34b64344f82e9c03779b71673
   repo: https://github.com/openshift/glog.git
@@ -75,6 +181,10 @@ imports:
   version: 30f7a39f4a218feb5325f3aebc60c32a572a8274
   subpackages:
   - query
+- name: github.com/gorilla/context
+  version: 14f550f51af52180c2eefed15e5fd18d63c0a64a
+- name: github.com/gorilla/mux
+  version: e444e69cbd2e2e3e0749a2f3c717cec491552bbf
 - name: github.com/hashicorp/hcl
   version: 7fa7fff964d035e8a162cce3a164b3ad02ad651b
   subpackages:
@@ -86,6 +196,8 @@ imports:
   - json/parser
   - json/scanner
   - json/token
+- name: github.com/imdario/mergo
+  version: d806ba8c21777d504a2090a2ca4913c750dd3a33
 - name: github.com/inconshreveable/go-update
   version: 8152e7eb6ccf8679a64582a66b78519688d156ad
   subpackages:
@@ -101,10 +213,40 @@ imports:
   version: 51463bfca2576e06c62a8504b5c0f06d61312647
 - name: github.com/mattn/go-runewidth
   version: 14207d285c6c197daabb5c9793d63e7af9ab2d50
+- name: github.com/mattn/go-shellwords
+  version: 02e3cf038dcea8290e44424da473dd12be796a8a
+- name: github.com/Microsoft/go-winio
+  version: d311c76e775b5092c023569caacdbb4e569c3243
+  subpackages:
+  - archive/tar
+  - backuptar
+- name: github.com/Microsoft/hcsshim
+  version: 49582cc501b7b6ade520e91e61e8d77c8a6e162e
+- name: github.com/mistifyio/go-zfs
+  version: c0224de804d438efd11ea6e52ada8014537d6062
 - name: github.com/mitchellh/mapstructure
   version: db1efb556f84b25a0a13a04aad883943538ad2e0
+- name: github.com/mtrmac/gpgme
+  version: b2432428689ca58c2b8e8dea9449d3295cf96fc9
 - name: github.com/olekukonko/tablewriter
   version: febf2d34b54a69ce7530036c7503b1c9fbfdf0bb
+- name: github.com/opencontainers/go-digest
+  version: eaa60544f31ccf3b0653b1a118b76d33418ff41b
+- name: github.com/opencontainers/image-spec
+  version: 5faaada8762b465d5ce8a8da27b92d577a1aa576
+  subpackages:
+  - specs-go
+  - specs-go/v1
+- name: github.com/opencontainers/runc
+  version: 6b1d0e76f239ffb435445e5ae316d2676c07c6e3
+  subpackages:
+  - libcontainer/system
+  - libcontainer/user
+- name: github.com/opencontainers/selinux
+  version: 63bd19516561f1973f86c9f777b263ee1e0db140
+  subpackages:
+  - go-selinux
+  - go-selinux/label
 - name: github.com/pborman/uuid
   version: 1b00554d822231195d1babd97ff4a781231955c9
 - name: github.com/pelletier/go-buffruneio
@@ -121,6 +263,8 @@ imports:
   version: f661dd4754aa5c52da85d04b5871ee0e11f4b59c
 - name: github.com/shurcooL/sanitized_anchor_name
   version: 79c90efaf01eddc01945af5bc1797859189b830b
+- name: github.com/Sirupsen/logrus
+  version: 7f4b1adc791766938c29457bed0703fb9134421a
 - name: github.com/spf13/afero
   version: 9be650865eab0c12963d8753212f4f9c66cdcf12
   subpackages:
@@ -137,12 +281,29 @@ imports:
   version: 2300d0f8576fe575f71aaa5b9bbe4e1b0dc2eb51
 - name: github.com/spf13/viper
   version: 382f87b929b84ce13e9c8a375a4b217f224e6c65
+- name: github.com/tchap/go-patricia
+  version: 666120de432aea38ab06bd5c818f04f4129882c9
+  subpackages:
+  - patricia
+- name: github.com/vbatts/tar-split
+  version: b9127a139315e57ebc26030e7decf72d0a20acb4
+  subpackages:
+  - archive/tar
+  - tar/asm
+  - tar/storage
 - name: github.com/xeipuuv/gojsonschema
   version: 20fdae500baa62c0de724a741df80b695c8ac756
 - name: golang.org/x/crypto
   version: beef0f4390813b96e8e68fd78570396d0f4751fc
   subpackages:
+  - cast5
   - curve25519
+  - openpgp
+  - openpgp/armor
+  - openpgp/elgamal
+  - openpgp/errors
+  - openpgp/packet
+  - openpgp/s2k
   - ssh
   - ssh/terminal
 - name: golang.org/x/net
@@ -150,6 +311,9 @@ imports:
   subpackages:
   - context
   - context/ctxhttp
+  - http2
+  - http2/hpack
+  - proxy
 - name: golang.org/x/oauth2
   version: 442624c9ec9243441e83b374a9e22ac549b5c51d
   subpackages:
@@ -158,6 +322,7 @@ imports:
   version: d9157a9621b69ad1d8d77a1933590c416593f24f
   subpackages:
   - unix
+  - windows
   - windows/registry
 - name: golang.org/x/text
   version: a9a820217f98f7c8a207ec1e45a874e1fe12c478
@@ -180,4 +345,8 @@ imports:
   version: b6229822fa186496fcbf34111237e7a9693c6971
 - name: gopkg.in/yaml.v2
   version: cd8b52f8269e0feb286dfeef29f8fe4d5b397e0b
+- name: k8s.io/client-go
+  version: a546461dcc4d5dd84291191ed1867ad1583cd816
+  subpackages:
+  - util/homedir
 testImports: []

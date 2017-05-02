@@ -38,6 +38,8 @@ VERSION_VARIABLES := -X $(REPOPATH)/pkg/version.version=$(MINISHIFT_VERSION) \
 	-X $(REPOPATH)/pkg/version.openshiftVersion=$(OPENSHIFT_VERSION)
 LDFLAGS := $(VERSION_VARIABLES) -s -w -extldflags '-static'
 
+BUILD_TAGS=containers_image_openpgp
+
 # Setup for go-bindata to include binary assets
 ADDON_ASSETS = $(CURDIR)/addons
 ADDON_BINDATA_DIR = $(CURDIR)/$(BUILD_DIR)/bindata
@@ -51,9 +53,10 @@ DOCS_SYNOPISIS_DIR = docs/source/_tmp
 
 .PHONY: $(GOPATH)/bin/minishift$(IS_EXE)
 $(GOPATH)/bin/minishift$(IS_EXE): $(ADDON_ASSET_FILE) vendor
-	go install -pkgdir=$(ADDON_BINDATA_DIR) -ldflags="$(VERSION_VARIABLES)" ./cmd/minishift
+	go install -tags $(BUILD_TAGS) -pkgdir=$(ADDON_BINDATA_DIR) -ldflags="$(VERSION_VARIABLES)" ./cmd/minishift
 vendor:
 	glide install -v
+	@rm -rf vendor/github.com/mtrmac
 
 $(ADDON_ASSET_FILE): $(GOPATH)/bin/go-bindata
 	@mkdir -p $(ADDON_BINDATA_DIR)
@@ -63,13 +66,13 @@ $(BUILD_DIR)/$(GOOS)-$(GOARCH):
 	mkdir -p $(BUILD_DIR)/$(GOOS)-$(GOARCH)
 
 $(BUILD_DIR)/darwin-amd64/minishift: vendor $(ADDON_ASSET_FILE) $(BUILD_DIR)/$(GOOS)-$(GOARCH)
-	CGO_ENABLED=0 GOARCH=amd64 GOOS=darwin go build -pkgdir=$(ADDON_BINDATA_DIR) --installsuffix cgo -ldflags="$(LDFLAGS)" -o $(BUILD_DIR)/darwin-amd64/minishift ./cmd/minishift
+	CGO_ENABLED=0 GOARCH=amd64 GOOS=darwin go build -tags $(BUILD_TAGS) -pkgdir=$(ADDON_BINDATA_DIR) --installsuffix cgo -ldflags="$(LDFLAGS)" -o $(BUILD_DIR)/darwin-amd64/minishift ./cmd/minishift
 
 $(BUILD_DIR)/linux-amd64/minishift: vendor $(ADDON_ASSET_FILE) $(BUILD_DIR)/$(GOOS)-$(GOARCH)
-	CGO_ENABLED=0 GOARCH=amd64 GOOS=linux go build -pkgdir=$(ADDON_BINDATA_DIR) --installsuffix cgo -ldflags="$(LDFLAGS)" -o $(BUILD_DIR)/linux-amd64/minishift ./cmd/minishift
+	CGO_ENABLED=0 GOARCH=amd64 GOOS=linux go build -tags $(BUILD_TAGS) -pkgdir=$(ADDON_BINDATA_DIR) --installsuffix cgo -ldflags="$(LDFLAGS)" -o $(BUILD_DIR)/linux-amd64/minishift ./cmd/minishift
 
 $(BUILD_DIR)/windows-amd64/minishift.exe: vendor $(ADDON_ASSET_FILE) $(BUILD_DIR)/$(GOOS)-$(GOARCH)
-	CGO_ENABLED=0 GOARCH=amd64 GOOS=windows go build -pkgdir=$(ADDON_BINDATA_DIR) --installsuffix cgo -ldflags="$(LDFLAGS)" -o $(BUILD_DIR)/windows-amd64/minishift.exe ./cmd/minishift
+	CGO_ENABLED=0 GOARCH=amd64 GOOS=windows go build -tags $(BUILD_TAGS) -pkgdir=$(ADDON_BINDATA_DIR) --installsuffix cgo -ldflags="$(LDFLAGS)" -o $(BUILD_DIR)/windows-amd64/minishift.exe ./cmd/minishift
 
 $(GOPATH)/bin/gh-release:
 	go get -u github.com/progrium/gh-release/...

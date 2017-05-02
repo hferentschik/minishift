@@ -59,6 +59,25 @@ import:
   version: 5
 - package: github.com/DATA-DOG/godog
   version: v0.6.2
+
+# Get all dependencies for containers/image
+- package: github.com/containers/image
+  version: c5b423957ee1583aa3dad1b78f757a9c1b6025c4
+- package: github.com/containers/storage
+  version: d10d8680af74070b362637408a7fe28c4b1f1eff
+- package: github.com/opencontainers/runc
+  version: 6b1d0e76f239ffb435445e5ae316d2676c07c6e3
+- package: github.com/docker/go-connections
+  version: 7da10c8c50cad14494ec818dcdfb6506265c0086
+- package: github.com/Sirupsen/logrus
+  version: 7f4b1adc791766938c29457bed0703fb9134421a
+- package: github.com/docker/docker
+  version: 75843d36aa5c3eaade50da005f9e0ff2602f3d5e
+- package: github.com/docker/distribution
+  version: df5327f76fb6468b84a87771e361762b8be23fdb
+- package: github.com/opencontainers/image-spec
+  version: v1.0.0-rc5
+
 # The following repositories need to be specified explicitly, since the versions referenced by the openshift/origin dependency
 # refer to forks of these projects within the openshift organizaton
 # This needs to be manually updated after upgrading the openshift/origin dependnecy
