@@ -1,0 +1,15 @@
+# Name: persistent-volumes
+# Description: Creates persistent volumes for data storage
+# Url: https://docs.openshift.org/latest/dev_guide/volumes.html
+
+ssh sudo mkdir -p $(printf "/var/lib/minishift/openshift.local.pv/pv%03g " 1 2 3 4 5)
+ssh sudo chmod -R 777 /var/lib/minishift/openshift.local.pv/pv*
+
+ssh sudo which chcon; if [ $? -eq 0 ] ;then chcon -R -t svirt_sandbox_file_t /var/lib/minishift/openshift.local.pv/*; fi
+ssh sudo which restorecon; if [ $? -eq 0 ] ;then restorecon -R /var/lib/minishift/openshift.local.pv/; fi
+
+oc create -f pv-1.yaml
+oc create -f pv-2.yaml
+oc create -f pv-3.yaml
+oc create -f pv-4.yaml
+oc create -f pv-5.yaml

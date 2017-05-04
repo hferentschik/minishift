@@ -32,7 +32,7 @@ import (
 
 var verbose bool
 
-var defaultAddonListFormat = "- {{.Name | printf \"%-15s\"}}: {{.Status | printf \"%-10s\"}} P({{.Priority | printf \"%d\"}})\n"
+var defaultAddonListFormat = "- {{.Name | printf \"%-25s\"}}: {{.Status | printf \"%-10s\"}} P({{.Priority | printf \"%d\"}})\n"
 var defaultListTemplate *template.Template
 
 var verboseAddonListFormat = `Name       : {{.Name}}

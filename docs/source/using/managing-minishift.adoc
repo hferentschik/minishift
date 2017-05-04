@@ -129,8 +129,6 @@ command.
 The easiest way to change a persistent configuration option is with
 the link:../command-ref/minishift_config_set{outfilesuffix}[`config set`] sub-command. For example:
 
-[listing.console]
-
 ----
 # Set default memory 4096 MB
 $ minishift config set memory 4096
@@ -139,8 +137,6 @@ $ minishift config set memory 4096
 To view all persistent configuration values, you can use the
 link:../command-ref/minishift_config_view{outfilesuffix}[`view`] sub-command:
 
-[listing.console]
-
 ----
 $ minishift config view
 - memory: 4096
@@ -148,8 +144,6 @@ $ minishift config view
 
 Alternatively, you can display a single value with the
 link:../command-ref/minishift_config_get{outfilesuffix}[`get`] sub-command:
-
-[listing.console]
 
 ----
 $ minishift config get memory
@@ -161,8 +155,6 @@ $ minishift config get memory
 
 To remove a persistent configuration option, you can use the
 link:../command-ref/minishift_config_unset{outfilesuffix}[`unset`] sub-command. For example:
-
-[listing.console]
 
 ----
 $ minishift config unset memory
@@ -194,12 +186,9 @@ In this case driver specific environment variables will override Minishift speci
 [[persistent-volumes]]
 == Persistent Volumes
 
-As part of the <<interacting-with-openshift#openshift-client-binary,cluster up>> provisioning
-100 link:https://docs.openshift.org/latest/dev_guide/persistent_volumes.html[persistent volumes] are created
-for your OpenShift cluster. This allows applications to make
-link:https://docs.openshift.org/latest/dev_guide/persistent_volumes.html#persistent-volumes-claims-as-volumes-in-pods[persistent volumes claims]. The location of the persistent data is determined via the _host-pv-dir_ flag
-of the link:../command-ref/minishift_start{outfilesuffix}[`start`] command and defaults to
-_/var/lib/minishift/openshift.local.pv_ on the Minishift VM.
+Minishift provides a persistent-volumes <<addons#,add-on>> which allows you to create an initial set of persistent volumes.
+After installing and enabling the add-on, it will provision 5 persistent volumes of type _hostPath_ during <<minishift-start,minishift start>>.
+Enabling this add-on will allow applications to make link:https://docs.openshift.org/latest/dev_guide/persistent_volumes.html#persistent-volumes-claims-as-volumes-in-pods[persistent volumes claims].
 
 [[http-s-proxies]]
 == HTTP/HTTPS Proxies
@@ -210,16 +199,12 @@ flags during `minishift start`.
 
 For example:
 
-[listing.console]
-
 ----
 $ minishift start --http-proxy http://YOURPROXY:PORT --https-proxy https://YOURPROXY:PORT
 ----
 
 In an authenticated proxy environment, the `proxy_user` and
 `proxy_password` must be a part of proxy URI.
-
-[listing.console]
 
 ----
  $ minishift start --http-proxy http://<proxy_username>:<proxy_password>@YOURPROXY:PORT \

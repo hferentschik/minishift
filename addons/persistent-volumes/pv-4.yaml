@@ -1,0 +1,14 @@
+pv-1.yamlapiVersion: v1
+kind: PersistentVolume
+metadata:
+  name: pv04
+spec:
+  accessModes:
+  - ReadWriteOnce
+  - ReadWriteMany
+  - ReadOnlyMany
+  capacity:
+    storage: 2Gi
+  hostPath:
+    path: /var/lib/minishift/openshift.local.pv/pv04
+  persistentVolumeReclaimPolicy: Recycle
