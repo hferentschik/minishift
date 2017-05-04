@@ -185,7 +185,7 @@ func runStart(cmd *cobra.Command, args []string) {
 	}
 
 	//Create the host directories if not present
-	hostDirs := []string{viper.GetString(hostConfigDir), viper.GetString(hostDataDir), viper.GetString(hostVolumesDir)}
+	hostDirs := []string{viper.GetString(hostConfigDir), viper.GetString(hostDataDir), viper.GetString(hostVolumesDir), viper.GetString(hostPvDir)}
 	err = clusterup.EnsureHostDirectoriesExist(libMachineClient, hostDirs)
 	if err != nil {
 		fmt.Println("Error creating required host directories: ", err)
@@ -231,6 +231,7 @@ func postClusterUp(machineName string, ip string, port int, routingSuffix string
 		atexit.Exit(1)
 	}
 
+	configurePeristentVolumes(sshCommander)
 	applyAddOns(ip, routingSuffix, ocPath, kubeConfigPath, sshCommander)
 }
 
@@ -241,6 +242,30 @@ func applyAddOns(ip string, routingSuffix string, ocPath string, kubeConfigPath 
 		fmt.Println("Error executing addon commands: ", err)
 		atexit.Exit(1)
 	}
+}
+
+// TODO - persistent volume creation should really be fixed upstream, aka 'cluster up' (HF)
+// configurePeristentVolumes makes sure that the default persistent volumes created by 'cluster up' have the right permissions - see https://github.com/minishift/minishift/issues/856
+func configurePeristentVolumes(sshCommander provision.SSHCommander) {
+	fmt.Println("-- Waiting for persistent volumes to be ready")
+
+	hostPvDir := viper.GetString(hostPvDir)
+
+	// there are in total 101 directories when using ls. There is an additonal 'registry' directory
+	cmd := fmt.Sprintf("while [ $(ls %s | wc -l) -lt 101 ] ; do sleep 1; done", hostPvDir)
+	sshCommander.SSHCommand(cmd)
+
+	cmd = fmt.Sprintf("sudo chmod -R 777 %s/pv*", hostPvDir)
+	sshCommander.SSHCommand(cmd)
+
+	// if we have SELinux enabled we need to sort things out there as well
+	cmd = fmt.Sprintf("sudo which chcon; if [ $? -eq 0 ] ;then chcon -R -t svirt_sandbox_file_t %s/*; fi", hostPvDir)
+	sshCommander.SSHCommand(cmd)
+
+	cmd = fmt.Sprintf("sudo which restorecon; if [ $? -eq 0 ] ;then restorecon -R %s; fi", hostPvDir)
+	sshCommander.SSHCommand(cmd)
+
+	fmt.Println("-- Persistent volumes created\n")
 }
 
 func automountHostfolders(driver drivers.Driver) {
