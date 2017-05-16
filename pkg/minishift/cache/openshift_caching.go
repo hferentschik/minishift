@@ -43,6 +43,7 @@ const (
 	fileScheme = "file"
 )
 
+// TODO Issue-143 remove
 // openshiftCacher is a struct with methods designed for caching openshift
 type openshiftCacher struct {
 	config cluster.MachineConfig
