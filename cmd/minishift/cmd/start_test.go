@@ -29,9 +29,9 @@ import (
 	"path/filepath"
 
 	"github.com/docker/machine/libmachine/provision"
-	"github.com/minishift/minishift/pkg/minikube/cluster"
 	"github.com/minishift/minishift/pkg/minikube/constants"
 	"github.com/minishift/minishift/pkg/minikube/tests"
+	"github.com/minishift/minishift/pkg/minishift/clusterup"
 	instanceState "github.com/minishift/minishift/pkg/minishift/config"
 	"github.com/minishift/minishift/pkg/util"
 	"github.com/spf13/viper"
@@ -118,7 +118,7 @@ func (r *RecordingRunner) Output(command string, args ...string) ([]byte, error)
 
 var testDir string
 var testRunner *RecordingRunner
-var testMachineConfig = cluster.MachineConfig{
+var testMachineConfig = clusterup.ClusterUpConfig{
 	OpenShiftVersion: "v1.3.1",
 }
 var testIp = "192.168.99.42"
@@ -292,8 +292,6 @@ func TestClusterUpWithProxyFlag(t *testing.T) {
 	viper.Set("http-proxy", "http://localhost:3128")
 	viper.Set("https-proxy", "https://localhost:3128")
 	viper.Set("no-proxy", "10.0.0.1")
-
-	setOcProxy()
 
 	clusterUp(&testMachineConfig, testIp)
 

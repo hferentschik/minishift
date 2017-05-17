@@ -106,19 +106,10 @@ var (
 	hostPvDirectory      = "/var/lib/minishift/openshift.local.pv"
 )
 
-// startFlagSet contains the minishift specific command line switches
-var startFlagSet = flag.NewFlagSet(commandName, flag.ContinueOnError)
-
 // clusterUpFlagSet contains the command line switches which needs to be passed on to 'cluster up'
-var clusterUpFlagSet = flag.NewFlagSet(commandName, flag.ContinueOnError)
+var clusterUpFlagSet *flag.FlagSet
 
-// proxyFlagSet contains the command line switches for proxy
-var proxyFlagSet = flag.NewFlagSet(commandName, flag.ContinueOnError)
-
-// subscription Manager FlagSet contains username and password details
-var subscriptionManagerFlagSet = flag.NewFlagSet(commandName, flag.ContinueOnError)
-
-// minishiftToClusterUp is a mapping between falg names used in minishift CLI and flag name as passed to 'cluster up'
+// minishiftToClusterUp is a mapping between flag names used in minishift CLI and flag name as passed to 'cluster up'
 var minishiftToClusterUp = map[string]string{
 	"openshift-env":     "env",
 	"openshift-version": "version",
@@ -131,6 +122,19 @@ func SetRunner(newRunner util.Runner) {
 	runner = newRunner
 }
 
+// init configures the command line options of this command
+func init() {
+	clusterUpFlagSet = initClusterUpFlags()
+	startCmd.Flags().AddFlagSet(clusterUpFlagSet)
+	startCmd.Flags().AddFlagSet(initStartFlags())
+	startCmd.Flags().AddFlagSet(initSubscriptionManagerFlags())
+
+	viper.BindPFlags(startCmd.Flags())
+	RootCmd.AddCommand(startCmd)
+
+	provision.SetDetector(&provisioner.MinishiftProvisionerDetector{Delegate: provision.StandardDetector{}})
+}
+
 // runStart is executed as part of the start command
 func runStart(cmd *cobra.Command, args []string) {
 	libMachineClient := libmachine.NewClient(constants.Minipath, constants.MakeMiniPath("certs"))
@@ -140,7 +144,6 @@ func runStart(cmd *cobra.Command, args []string) {
 	validateProxyArgs()
 
 	setDockerProxy()
-	setOcProxy()
 	setShellProxy()
 	setSubscriptionManagerParameters()
 
@@ -154,7 +157,6 @@ func runStart(cmd *cobra.Command, args []string) {
 		InsecureRegistry: insecureRegistry,
 		RegistryMirror:   registryMirror,
 		HostOnlyCIDR:     viper.GetString(hostOnlyCIDR),
-		OpenShiftVersion: viper.GetString(openshiftVersion),
 		ShellProxyEnv:    shellProxyEnv,
 	}
 
@@ -182,28 +184,29 @@ func runStart(cmd *cobra.Command, args []string) {
 
 	automountHostfolders(host.Driver)
 
-	clusterUp(config, ip)
+	clusterUpConfig := &clusterup.ClusterUpConfig{
+		OpenShiftVersion: viper.GetString(openshiftVersion),
+		MachineName:      constants.MachineName,
+		Ip:               ip,
+		Port:             constants.APIServerPort,
+		RoutingSuffix:    viper.GetString(routingSuffix),
+		HostPvDir:        viper.GetString(hostPvDir),
+		User:             "developer",
+		Project:          "myproject",
+	}
+
+	clusterUp(clusterUpConfig, ip)
 
 	isRestart := cmdutil.VMExists(libMachineClient, constants.MachineName)
 	if !isRestart {
 		sshCommander := provision.GenericSSHCommander{Driver: host.Driver}
-		clusterUpConfig := clusterup.ClusterUpConfig{
-			MachineName:   constants.MachineName,
-			Ip:            ip,
-			Port:          constants.APIServerPort,
-			RoutingSuffix: viper.GetString(routingSuffix),
-			HostPvDir:     viper.GetString(hostPvDir),
-			User:          "developer",
-			Project:       "myproject",
-		}
-
 		ocRunner, err := oc.NewOcRunner(minishiftConfig.InstanceConfig.OcPath, constants.KubeConfigPath)
 		if err != nil {
 			fmt.Println("Error configuring OpenShift: ", err)
 			atexit.Exit(1)
 		}
 
-		err = clusterup.PostClusterUp(&clusterUpConfig, ocRunner, sshCommander, addon.GetAddOnManager())
+		err = clusterup.PostClusterUp(clusterUpConfig, ocRunner, sshCommander, addon.GetAddOnManager())
 		if err != nil {
 			fmt.Println("Error during post cluster up configuration: ", err)
 			atexit.Exit(1)
@@ -254,18 +257,7 @@ func setDockerProxy() {
 
 }
 
-// Set OpenShiftProxy
-func setOcProxy() {
-	if viper.IsSet(httpProxy) {
-		clusterUpFlagSet.String(httpProxy, viper.GetString(httpProxy), "HTTP proxy to use for master and builds")
-	}
-	if viper.IsSet(httpsProxy) {
-		clusterUpFlagSet.String(httpsProxy, viper.GetString(httpsProxy), "HTTPS proxy to use for master and builds")
-	}
-	if viper.IsSet(noProxyList) {
-		clusterUpFlagSet.String(noProxyList, viper.GetString(noProxyList), "List of hosts or subnets for which a proxy shouldn't be use")
-	}
-}
+// TODO Issue 143 Verify removal of setOcProxy (HF)
 
 // Set shell proxy
 func setShellProxy() {
@@ -296,26 +288,10 @@ func calculateDiskSizeInMB(humanReadableDiskSize string) int {
 	return int(diskSize / units.MB)
 }
 
-// init configures the command line options of this command
-func init() {
-	initStartFlags()
-	initClusterUpFlags()
-	initProxyFlags()
-	initSubscriptionManagerFlags()
+// initStartFlags creates the CLI flags which needs to be passed on to 'lib-machine'
+func initStartFlags() *flag.FlagSet {
+	startFlagSet := flag.NewFlagSet(commandName, flag.ContinueOnError)
 
-	startCmd.Flags().AddFlagSet(startFlagSet)
-	startCmd.Flags().AddFlagSet(clusterUpFlagSet)
-	startCmd.Flags().AddFlagSet(proxyFlagSet)
-	startCmd.Flags().AddFlagSet(subscriptionManagerFlagSet)
-
-	viper.BindPFlags(startCmd.Flags())
-	RootCmd.AddCommand(startCmd)
-
-	provision.SetDetector(&provisioner.MinishiftProvisionerDetector{Delegate: provision.StandardDetector{}})
-}
-
-// initStartFlags creates the CLI flags which needs to be passed on to 'libmachine'
-func initStartFlags() {
 	startFlagSet.String(isoURL, constants.DefaultIsoUrl, "Location of the minishift ISO.")
 	startFlagSet.String(vmDriver, constants.DefaultVMDriver, fmt.Sprintf("The driver to use for the Minishift VM. Possible values: %v", constants.SupportedVMDrivers))
 	startFlagSet.Int(memory, constants.DefaultMemory, "Amount of RAM to allocate to the Minishift VM.")
@@ -325,10 +301,14 @@ func initStartFlags() {
 	startFlagSet.StringArrayVar(&dockerEnv, "docker-env", nil, "Environment variables to pass to the Docker daemon. Use the format <key>=<value>.")
 	startFlagSet.StringSliceVar(&insecureRegistry, "insecure-registry", []string{"172.30.0.0/16"}, "Non-secure Docker registries to pass to the Docker daemon.")
 	startFlagSet.StringSliceVar(&registryMirror, "registry-mirror", nil, "Registry mirrors to pass to the Docker daemon.")
+
+	return startFlagSet
 }
 
 // initClusterUpFlags creates the CLI flags which needs to be passed on to 'oc cluster up'
-func initClusterUpFlags() {
+func initClusterUpFlags() *flag.FlagSet {
+	clusterUpFlagSet := flag.NewFlagSet(commandName, flag.ContinueOnError)
+
 	//clusterUpFlagSet.StringVar(&clusterUpConfig.Image, "image", "openshift/origin", "Specify the images to use for OpenShift")
 	clusterUpFlagSet.Bool(skipRegistryCheck, false, "Skip the Docker daemon registry check.")
 	clusterUpFlagSet.String(publicHostname, "", "Public hostname of the OpenShift cluster.")
@@ -343,24 +323,26 @@ func initClusterUpFlags() {
 	clusterUpFlagSet.Bool(metrics, false, "Install metrics (experimental)")
 	clusterUpFlagSet.Bool(logging, false, "Install logging (experimental)")
 	clusterUpFlagSet.String(openshiftVersion, version.GetOpenShiftVersion(), fmt.Sprintf("The OpenShift version to run, eg. %s", version.GetOpenShiftVersion()))
+	clusterUpFlagSet.String(httpProxy, "", "HTTP proxy for virtual machine (In the format of http://<username>:<password>@<proxy_host>:<proxy_port>)")
+	clusterUpFlagSet.String(httpsProxy, "", "HTTPS proxy for virtual machine (In the format of https://<username>:<password>@<proxy_host>:<proxy_port>)")
+	clusterUpFlagSet.String(noProxyList, "", "List of hosts or subnets for which proxy should not be used.")
+
+	return clusterUpFlagSet
 }
 
 // initProxyFlags create the CLI flags which needs to be passed for proxy
-func initProxyFlags() {
-	proxyFlagSet.String(httpProxy, "", "HTTP proxy for virtual machine (In the format of http://<username>:<password>@<proxy_host>:<proxy_port>)")
-	proxyFlagSet.String(httpsProxy, "", "HTTPS proxy for virtual machine (In the format of https://<username>:<password>@<proxy_host>:<proxy_port>)")
-	proxyFlagSet.String(noProxyList, "", "List of hosts or subnets for which proxy should not be used.")
-}
+func initSubscriptionManagerFlags() *flag.FlagSet {
+	var subscriptionManagerFlagSet = flag.NewFlagSet(commandName, flag.ContinueOnError)
 
-// initProxyFlags create the CLI flags which needs to be passed for proxy
-func initSubscriptionManagerFlags() {
 	subscriptionManagerFlagSet.String(username, "", "Username for the virtual machine registration.")
 	subscriptionManagerFlagSet.String(password, "", "Password for the virtual machine registration.")
+
+	return subscriptionManagerFlagSet
 }
 
 // clusterUp downloads and installs the oc binary in order to run 'cluster up'
-func clusterUp(config *cluster.MachineConfig, ip string) {
-	if !minishiftUtil.ValidateOpenshiftMinVersion(viper.GetString(openshiftVersion), version.GetOpenShiftVersion()) {
+func clusterUp(config *clusterup.ClusterUpConfig) {
+	if !clusterup.ValidateOpenshiftMinVersion(viper.GetString(openshiftVersion), version.GetOpenShiftVersion()) {
 		config.OpenShiftVersion = version.GetOpenShiftVersion()
 	}
 	oc := cache.Oc{
@@ -387,7 +369,7 @@ func clusterUp(config *cluster.MachineConfig, ip string) {
 	viper.Set(hostVolumesDir, viper.GetString(hostVolumesDir))
 	viper.Set(hostPvDir, viper.GetString(hostPvDir))
 
-	setDefaultRoutingPrefix(ip)
+	setDefaultRoutingPrefix(config.Ip)
 
 	clusterUpFlagSet.VisitAll(func(flag *flag.Flag) {
 		if viper.IsSet(flag.Name) {
@@ -405,10 +387,12 @@ func clusterUp(config *cluster.MachineConfig, ip string) {
 		}
 	})
 
-	exitCode := runner.Run(os.Stdout, os.Stderr, cmdName, cmdArgs...)
-	if exitCode != 0 {
-		atexit.ExitWithMessage(1, "Error starting the cluster.")
-	}
+	fmt.Println(cmdArgs)
+
+	//exitCode := runner.Run(os.Stdout, os.Stderr, cmdName, cmdArgs...)
+	//if exitCode != 0 {
+	//	atexit.ExitWithMessage(1, "Error starting the cluster.")
+	//}
 }
 
 func setDefaultRoutingPrefix(ip string) {
@@ -419,13 +403,15 @@ func setDefaultRoutingPrefix(ip string) {
 }
 
 func validateOpenshiftVersion() {
-	if viper.IsSet(openshiftVersion) {
-		if !minishiftUtil.ValidateOpenshiftMinVersion(viper.GetString(openshiftVersion), constants.MinOpenshiftSuportedVersion) {
-			fmt.Printf("Minishift does not support Openshift version %s ."+
-				"You need to use a version >=%s\n", viper.GetString(openshiftVersion),
-				constants.MinOpenshiftSuportedVersion)
-			atexit.Exit(1)
-		}
+	if !viper.IsSet(openshiftVersion) {
+		return
+	}
+
+	if !clusterup.ValidateOpenshiftMinVersion(viper.GetString(openshiftVersion), constants.MinOpenshiftSuportedVersion) {
+		fmt.Printf("Minishift does not support Openshift version %s ."+
+			"You need to use a version >=%s\n", viper.GetString(openshiftVersion),
+			constants.MinOpenshiftSuportedVersion)
+		atexit.Exit(1)
 	}
 }
 

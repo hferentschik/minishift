@@ -20,8 +20,10 @@ import (
 	"bytes"
 	"errors"
 	"fmt"
+	"github.com/blang/semver"
 	"github.com/docker/machine/libmachine/host"
 	"github.com/docker/machine/libmachine/provision"
+	"github.com/minishift/minishift/pkg/minikube/constants"
 	"github.com/minishift/minishift/pkg/minikube/kubeconfig"
 	"github.com/minishift/minishift/pkg/minishift/addon/command"
 	"github.com/minishift/minishift/pkg/minishift/addon/manager"
@@ -36,13 +38,14 @@ const (
 )
 
 type ClusterUpConfig struct {
-	MachineName   string
-	Ip            string
-	Port          int
-	RoutingSuffix string
-	HostPvDir     string
-	User          string
-	Project       string
+	OpenShiftVersion string
+	MachineName      string
+	Ip               string
+	Port             int
+	RoutingSuffix    string
+	HostPvDir        string
+	User             string
+	Project          string
 }
 
 // postClusterUp runs the Minishift specific provisioning after cluster up has run
@@ -166,4 +169,18 @@ func getExecutionContext(ip string, routingSuffix string, ocRunner *oc.OcRunner,
 	context.AddToContext(routing_suffix_key, routingSuffix)
 
 	return context, nil
+}
+
+func ValidateOpenshiftMinVersion(ver string, minVersion string) bool {
+	v, _ := semver.Parse(strings.TrimPrefix(ver, constants.VersionPrefix))
+	minSupportedVersion := strings.TrimPrefix(minVersion, constants.VersionPrefix)
+	versionRange, err := semver.ParseRange(fmt.Sprintf(">=%s", minSupportedVersion))
+	if err != nil {
+		fmt.Println("Not able to parse version info", err)
+		return false
+	}
+	if versionRange(v) {
+		return true
+	}
+	return false
 }
