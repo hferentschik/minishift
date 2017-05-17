@@ -35,6 +35,7 @@ import (
 	"github.com/minishift/minishift/pkg/minishift/clusterup"
 	minishiftConfig "github.com/minishift/minishift/pkg/minishift/config"
 	"github.com/minishift/minishift/pkg/minishift/hostfolder"
+	"github.com/minishift/minishift/pkg/minishift/oc"
 	"github.com/minishift/minishift/pkg/minishift/provisioner"
 	minishiftUtil "github.com/minishift/minishift/pkg/minishift/util"
 	"github.com/minishift/minishift/pkg/util"
@@ -187,18 +188,26 @@ func runStart(cmd *cobra.Command, args []string) {
 	if !isRestart {
 		sshCommander := provision.GenericSSHCommander{Driver: host.Driver}
 		clusterUpConfig := clusterup.ClusterUpConfig{
-			MachineName:    constants.MachineName,
-			Ip:             ip,
-			Port:           constants.APIServerPort,
-			RoutingSuffix:  viper.GetString(routingSuffix),
-			OcPath:         minishiftConfig.InstanceConfig.OcPath,
-			HostPvDir:      viper.GetString(hostPvDir),
-			KubeConfigPath: constants.KubeConfigPath,
-			User:           "developer",
-			Project:        "myproject",
+			MachineName:   constants.MachineName,
+			Ip:            ip,
+			Port:          constants.APIServerPort,
+			RoutingSuffix: viper.GetString(routingSuffix),
+			HostPvDir:     viper.GetString(hostPvDir),
+			User:          "developer",
+			Project:       "myproject",
 		}
 
-		clusterup.PostClusterUp(&clusterUpConfig, sshCommander, addon.GetAddOnManager())
+		ocRunner, err := oc.NewOcRunner(minishiftConfig.InstanceConfig.OcPath, constants.KubeConfigPath)
+		if err != nil {
+			fmt.Println("Error configuring OpenShift: ", err)
+			atexit.Exit(1)
+		}
+
+		err = clusterup.PostClusterUp(&clusterUpConfig, ocRunner, sshCommander, addon.GetAddOnManager())
+		if err != nil {
+			fmt.Println("Error during post cluster up configuration: ", err)
+			atexit.Exit(1)
+		}
 	}
 }
 

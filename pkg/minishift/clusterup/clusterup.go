@@ -22,12 +22,10 @@ import (
 	"fmt"
 	"github.com/docker/machine/libmachine/host"
 	"github.com/docker/machine/libmachine/provision"
-	"github.com/golang/glog"
 	"github.com/minishift/minishift/pkg/minikube/kubeconfig"
 	"github.com/minishift/minishift/pkg/minishift/addon/command"
 	"github.com/minishift/minishift/pkg/minishift/addon/manager"
 	"github.com/minishift/minishift/pkg/minishift/oc"
-	"github.com/minishift/minishift/pkg/util/os/atexit"
 	"strings"
 	"time"
 )
@@ -38,42 +36,43 @@ const (
 )
 
 type ClusterUpConfig struct {
-	MachineName    string
-	Ip             string
-	Port           int
-	RoutingSuffix  string
-	OcPath         string
-	KubeConfigPath string
-	HostPvDir      string
-	User           string
-	Project        string
+	MachineName   string
+	Ip            string
+	Port          int
+	RoutingSuffix string
+	HostPvDir     string
+	User          string
+	Project       string
 }
 
 // postClusterUp runs the Minishift specific provisioning after cluster up has run
-func PostClusterUp(config *ClusterUpConfig, sshCommander provision.SSHCommander, addOnManager *manager.AddOnManager) {
-	if err := kubeconfig.CacheSystemAdminEntries(config.KubeConfigPath, getConfigClusterName(config.Ip, config.Port)); err != nil {
-		fmt.Println("Error creating Minishift kubeconfig: ", err)
-		atexit.Exit(1)
-	}
-
-	ocRunner, err := oc.NewOcRunner(config.OcPath, config.KubeConfigPath)
+func PostClusterUp(config *ClusterUpConfig, ocRunner *oc.OcRunner, sshCommander provision.SSHCommander, addOnManager *manager.AddOnManager) error {
+	err := kubeconfig.CacheSystemAdminEntries(ocRunner.KubeConfigPath, getConfigClusterName(config.Ip, config.Port))
 	if err != nil {
-		fmt.Println("Error configuring OpenShift: ", err)
-		atexit.Exit(1)
+		return err
 	}
 
-	if err := ocRunner.AddSudoerRoleForUser(config.User); err != nil {
-		glog.Error(fmt.Sprintf("Error giving %s sudoer privileges: ", config.User))
-		atexit.Exit(1)
+	err = ocRunner.AddSudoerRoleForUser(config.User)
+	if err != nil {
+		return err
 	}
 
-	if err := ocRunner.AddCliContext(config.MachineName, config.Ip, config.User, config.Project); err != nil {
-		fmt.Println("Error adding OpenShift context: ", err)
-		atexit.Exit(1)
+	err = ocRunner.AddCliContext(config.MachineName, config.Ip, config.User, config.Project)
+	if err != nil {
+		return err
 	}
 
-	configurePersistentVolumes(config.HostPvDir, addOnManager, sshCommander, ocRunner)
-	applyAddOns(addOnManager, config.Ip, config.RoutingSuffix, config.OcPath, config.KubeConfigPath, sshCommander)
+	err = configurePersistentVolumes(config.HostPvDir, addOnManager, sshCommander, ocRunner)
+	if err != nil {
+		return err
+	}
+
+	err = applyAddOns(addOnManager, config.Ip, config.RoutingSuffix, ocRunner, sshCommander)
+	if err != nil {
+		return err
+	}
+
+	return nil
 }
 
 //Create the host directories in the virtual machine if not present
@@ -143,25 +142,28 @@ func configurePersistentVolumes(hostPvDir string, addOnManager *manager.AddOnMan
 	return nil
 }
 
-func applyAddOns(addOnManager *manager.AddOnManager, ip string, routingSuffix string, ocPath string, kubeConfigPath string, sshCommander provision.SSHCommander) {
-	err := addOnManager.Apply(getExecutionContext(ip, routingSuffix, ocPath, kubeConfigPath, sshCommander))
+func applyAddOns(addOnManager *manager.AddOnManager, ip string, routingSuffix string, ocRunner *oc.OcRunner, sshCommander provision.SSHCommander) error {
+	context, err := getExecutionContext(ip, routingSuffix, ocRunner, sshCommander)
+	err = addOnManager.Apply(context)
 	if err != nil {
-		atexit.ExitWithMessage(1, fmt.Sprint("Error executing addon commands: ", err))
+		return err
 	}
+
+	return nil
 }
 
 func getConfigClusterName(ip string, port int) string {
 	return fmt.Sprintf("%s:%d", strings.Replace(ip, ".", "-", -1), port)
 }
 
-func getExecutionContext(ip string, routingSuffix string, ocPath string, kubeConfigPath string, sshCommander provision.SSHCommander) *command.ExecutionContext {
-	context, err := command.NewExecutionContext(ocPath, kubeConfigPath, sshCommander)
+func getExecutionContext(ip string, routingSuffix string, ocRunner *oc.OcRunner, sshCommander provision.SSHCommander) (*command.ExecutionContext, error) {
+	context, err := command.NewExecutionContext(ocRunner, sshCommander)
 	if err != nil {
-		atexit.ExitWithMessage(1, fmt.Sprintf("Unable to initialise execution context: %s", err.Error()))
+		return nil, errors.New(fmt.Sprintf("Unable to initialise execution context: %s", err.Error()))
 	}
 
 	context.AddToContext(ip_key, ip)
 	context.AddToContext(routing_suffix_key, routingSuffix)
 
-	return context
+	return context, nil
 }
