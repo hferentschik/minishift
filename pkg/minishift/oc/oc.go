@@ -21,10 +21,12 @@ import (
 	"github.com/minishift/minishift/pkg/minikube/constants"
 	"github.com/minishift/minishift/pkg/util"
 
+	"bytes"
 	"github.com/minishift/minishift/pkg/util/cmd"
 	"github.com/minishift/minishift/pkg/util/filehelper"
 	"github.com/pkg/errors"
 	"io"
+	"regexp"
 	"strings"
 )
 
@@ -65,6 +67,43 @@ func (oc *OcRunner) Run(command string, stdOut io.Writer, stdErr io.Writer) int 
 func (oc *OcRunner) RunAsUser(command string, stdOut io.Writer, stdErr io.Writer) int {
 	args := strings.Split(command, " ")
 	return oc.runner.Run(stdOut, stdErr, oc.OcPath, args...)
+}
+
+func (oc *OcRunner) SupportFlag(flag string) bool {
+	var cmdOut *bytes.Buffer
+	oc.Run("cluster up -h", cmdOut, nil)
+	ocCommandOptions := oc.parseOcHelpCommand(cmdOut.Bytes())
+	if ocCommandOptions != nil {
+		return oc.flagExist(ocCommandOptions, flag)
+	}
+	return false
+}
+
+func (oc *OcRunner) parseOcHelpCommand(cmdOut []byte) []string {
+	ocOptions := []string{}
+	ocOptionRegex := regexp.MustCompile(`(?s)Options(.*)OpenShift images`)
+	matches := ocOptionRegex.FindSubmatch(cmdOut)
+	if matches != nil {
+		tmpOptionsList := string(matches[0])
+		for _, value := range strings.Split(tmpOptionsList, "\n")[1:] {
+			tmpOption := strings.Split(strings.Split(strings.TrimSpace(value), "=")[0], "--")
+			if len(tmpOption) > 1 {
+				ocOptions = append(ocOptions, tmpOption[1])
+			}
+		}
+	} else {
+		return nil
+	}
+	return ocOptions
+}
+
+func (oc *OcRunner) flagExist(ocCommandOptions []string, flag string) bool {
+	for _, v := range ocCommandOptions {
+		if v == flag {
+			return true
+		}
+	}
+	return false
 }
 
 // AddSudoerRoleForUser gives the specified user the sudoer role

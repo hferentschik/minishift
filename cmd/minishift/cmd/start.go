@@ -37,7 +37,6 @@ import (
 	"github.com/minishift/minishift/pkg/minishift/hostfolder"
 	"github.com/minishift/minishift/pkg/minishift/oc"
 	"github.com/minishift/minishift/pkg/minishift/provisioner"
-	minishiftUtil "github.com/minishift/minishift/pkg/minishift/util"
 	"github.com/minishift/minishift/pkg/util"
 	"github.com/minishift/minishift/pkg/util/os/atexit"
 	"github.com/minishift/minishift/pkg/version"
@@ -71,11 +70,9 @@ const (
 	metrics           = "metrics"
 	hostPvDir         = "host-pv-dir"
 	logging           = "logging"
-
-	// Setting proxy
-	httpProxy   = "http-proxy"
-	httpsProxy  = "https-proxy"
-	noProxyList = "no-proxy"
+	httpProxy         = "http-proxy"
+	httpsProxy        = "https-proxy"
+	noProxyList       = "no-proxy"
 
 	// Subscription Manager (username/password)
 	username = "username"
@@ -182,7 +179,7 @@ func runStart(cmd *cobra.Command, args []string) {
 		atexit.Exit(1)
 	}
 
-	automountHostfolders(host.Driver)
+	autoMountHostFolders(host.Driver)
 
 	clusterUpConfig := &clusterup.ClusterUpConfig{
 		OpenShiftVersion: viper.GetString(openshiftVersion),
@@ -195,17 +192,14 @@ func runStart(cmd *cobra.Command, args []string) {
 		Project:          "myproject",
 	}
 
-	clusterUp(clusterUpConfig, ip)
+	ocRunner := createOcRunner(clusterUpConfig)
+
+	clusterUpParams := determineClusterUpParameters(clusterUpConfig)
+	clusterUp(clusterUpConfig, clusterUpParams, ocRunner)
 
 	isRestart := cmdutil.VMExists(libMachineClient, constants.MachineName)
 	if !isRestart {
 		sshCommander := provision.GenericSSHCommander{Driver: host.Driver}
-		ocRunner, err := oc.NewOcRunner(minishiftConfig.InstanceConfig.OcPath, constants.KubeConfigPath)
-		if err != nil {
-			fmt.Println("Error configuring OpenShift: ", err)
-			atexit.Exit(1)
-		}
-
 		err = clusterup.PostClusterUp(clusterUpConfig, ocRunner, sshCommander, addon.GetAddOnManager())
 		if err != nil {
 			fmt.Println("Error during post cluster up configuration: ", err)
@@ -234,7 +228,7 @@ func startHost(libMachineClient *libmachine.Client, config *cluster.MachineConfi
 	return host
 }
 
-func automountHostfolders(driver drivers.Driver) {
+func autoMountHostFolders(driver drivers.Driver) {
 	if hostfolder.IsAutoMount() && hostfolder.IsHostfoldersDefined() {
 		hostfolder.MountHostfolders(driver)
 	}
@@ -256,8 +250,6 @@ func setDockerProxy() {
 	}
 
 }
-
-// TODO Issue 143 Verify removal of setOcProxy (HF)
 
 // Set shell proxy
 func setShellProxy() {
@@ -340,28 +332,8 @@ func initSubscriptionManagerFlags() *flag.FlagSet {
 	return subscriptionManagerFlagSet
 }
 
-// clusterUp downloads and installs the oc binary in order to run 'cluster up'
-func clusterUp(config *clusterup.ClusterUpConfig) {
-	if !clusterup.ValidateOpenshiftMinVersion(viper.GetString(openshiftVersion), version.GetOpenShiftVersion()) {
-		config.OpenShiftVersion = version.GetOpenShiftVersion()
-	}
-	oc := cache.Oc{
-		OpenShiftVersion:  config.OpenShiftVersion,
-		MinishiftCacheDir: filepath.Join(constants.Minipath, "cache"),
-	}
-	if err := oc.EnsureIsCached(); err != nil {
-		atexit.ExitWithMessage(1, fmt.Sprintln("Error starting the cluster: ", err))
-	}
-
-	// Update MACHINE_NAME.json for oc path
-	minishiftConfig.InstanceConfig.OcPath = filepath.Join(oc.GetCacheFilepath(), constants.OC_BINARY_NAME)
-	if err := minishiftConfig.InstanceConfig.Write(); err != nil {
-		fmt.Println("Error updating oc path in config of VM: ", err)
-		atexit.Exit(1)
-	}
-
-	cmdName := filepath.Join(oc.GetCacheFilepath(), constants.OC_BINARY_NAME)
-	cmdArgs := []string{"cluster", "up", "--use-existing-config"}
+func determineClusterUpParameters(config *clusterup.ClusterUpConfig) map[string]string {
+	clusterUpParams := make(map[string]string)
 
 	// Set default value for host config, data and volumes
 	viper.Set(hostConfigDir, viper.GetString(hostConfigDir))
@@ -379,20 +351,55 @@ func clusterUp(config *clusterup.ClusterUpConfig) {
 			if exists {
 				key = minishiftToClusterUp[key]
 			}
-			if !ocSupportFlag(cmdName, key) {
-				atexit.ExitWithMessage(1, fmt.Sprintf("Flag %s is not supported for oc version %s. Use 'openshift-version' flag to select a different version of OpenShift.", flag.Name, config.OpenShiftVersion))
-			}
-			cmdArgs = append(cmdArgs, "--"+key)
-			cmdArgs = append(cmdArgs, value)
+			clusterUpParams[key] = value
 		}
 	})
 
-	fmt.Println(cmdArgs)
+	return clusterUpParams
+}
 
-	//exitCode := runner.Run(os.Stdout, os.Stderr, cmdName, cmdArgs...)
-	//if exitCode != 0 {
-	//	atexit.ExitWithMessage(1, "Error starting the cluster.")
-	//}
+func createOcRunner(config *clusterup.ClusterUpConfig) *oc.OcRunner {
+	if !clusterup.ValidateOpenshiftMinVersion(viper.GetString(openshiftVersion), version.GetOpenShiftVersion()) {
+		config.OpenShiftVersion = version.GetOpenShiftVersion()
+	}
+	ocBinary := cache.Oc{
+		OpenShiftVersion:  config.OpenShiftVersion,
+		MinishiftCacheDir: filepath.Join(constants.Minipath, "cache"),
+	}
+	if err := ocBinary.EnsureIsCached(); err != nil {
+		atexit.ExitWithMessage(1, fmt.Sprintln("Error starting the cluster: ", err))
+	}
+
+	// Update MACHINE_NAME.json for oc path
+	minishiftConfig.InstanceConfig.OcPath = filepath.Join(ocBinary.GetCacheFilepath(), constants.OC_BINARY_NAME)
+	if err := minishiftConfig.InstanceConfig.Write(); err != nil {
+		fmt.Println("Error updating oc path in config of VM: ", err)
+		atexit.Exit(1)
+	}
+
+	ocRunner, err := oc.NewOcRunner(minishiftConfig.InstanceConfig.OcPath, constants.KubeConfigPath)
+	if err != nil {
+		fmt.Println("Error configuring OpenShift: ", err)
+		atexit.Exit(1)
+	}
+	return ocRunner
+}
+
+// clusterUp downloads and installs the oc binary in order to run 'cluster up'
+func clusterUp(config *clusterup.ClusterUpConfig, clusterUpParams map[string]string, ocRunner *oc.OcRunner) {
+	cmdArgs := "cluster up --use-existing-config "
+
+	for key, value := range clusterUpParams {
+		if !ocRunner.SupportFlag(key) {
+			atexit.ExitWithMessage(1, fmt.Sprintf("Flag %s is not supported for oc version %s. Use 'openshift-version' flag to select a different version of OpenShift.", key, config.OpenShiftVersion))
+		}
+		cmdArgs = cmdArgs + "--" + key + " " + value + " "
+	}
+
+	exitCode := ocRunner.Run(cmdArgs, os.Stdout, os.Stderr)
+	if exitCode != 0 {
+		atexit.ExitWithMessage(1, "Error starting the cluster.")
+	}
 }
 
 func setDefaultRoutingPrefix(ip string) {
@@ -426,19 +433,6 @@ func validateProxyArgs() {
 			glog.Exitf("HTTPS Proxy URL is not valid, Please check help message")
 		}
 	}
-}
-
-func ocSupportFlag(cmdName string, flag string) bool {
-	cmdArgs := []string{"cluster", "up", "-h"}
-	cmdOut, err := runner.Output(cmdName, cmdArgs...)
-	if err != nil {
-		atexit.ExitWithMessage(1, fmt.Sprintf("Not able to get output of 'oc -h' Error: %s", err))
-	}
-	ocCommandOptions := minishiftUtil.ParseOcHelpCommand(cmdOut)
-	if ocCommandOptions != nil {
-		return minishiftUtil.FlagExist(ocCommandOptions, flag)
-	}
-	return false
 }
 
 func setSubscriptionManagerParameters() {
