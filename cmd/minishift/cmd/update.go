@@ -18,23 +18,38 @@ package cmd
 
 import (
 	"fmt"
-	"os"
-	"strings"
+	//"strings"
 
 	"github.com/minishift/minishift/pkg/minishift/update"
 	"github.com/minishift/minishift/pkg/util/os/atexit"
 
+	"github.com/minishift/minishift/pkg/util"
 	"github.com/spf13/cobra"
+	"github.com/spf13/viper"
+	"strings"
+)
+
+const (
+	updateHttpProxy  = "http-proxy"
+	updateHttpsProxy = "https-proxy"
 )
 
 var updateCmd = &cobra.Command{
 	Use:   "update",
-	Short: "Checks for updates in Minishift",
-	Long:  `Checks for updates in Minishift and prompts the user to download newer version`,
+	Short: "Update to latest version of Minishift.",
+	Long:  `Checks for the latest version of Minishift, prompt the user and update the binary if user answers with 'y'.`,
 	Run:   runUpdate,
 }
 
 func runUpdate(cmd *cobra.Command, args []string) {
+	proxyConfig, err := util.NewProxyConfig(viper.GetString(updateHttpProxy), viper.GetString(updateHttpsProxy), "")
+	if err != nil {
+		atexit.ExitWithMessage(1, err.Error())
+	}
+
+	if proxyConfig.IsEnabled() {
+		proxyConfig.ApplyToEnvironment()
+	}
 
 	localVersion, err := update.CurrentVersion()
 	if err != nil {
@@ -53,17 +68,20 @@ func runUpdate(cmd *cobra.Command, args []string) {
 		fmt.Scanln(&confirm)
 
 		if strings.ToLower(confirm) == "y" {
-
-			err := update.Update(os.Stdout, latestVersion)
+			err := update.Update(latestVersion)
 			if err != nil {
 				atexit.ExitWithMessage(1, fmt.Sprintf("Update failed: %s", err))
 			}
+
+			fmt.Printf("\nUpdated successfully to minishift v%s.\n", latestVersion)
 		}
 	} else {
-		fmt.Printf("Nothing to update\nAlready using latest version: %s\n", latestVersion)
+		fmt.Printf("Nothing to update.\nAlready using latest version: %s.\n", latestVersion)
 	}
 }
 
 func init() {
 	RootCmd.AddCommand(updateCmd)
+	updateCmd.Flags().String(updateHttpProxy, "", "HTTP proxy used for downloading binary (In the format of http://<username>:<password>@<proxy_host>:<proxy_port>). Overrides a potential HTTP_PROXY setting in the enviroment.")
+	updateCmd.Flags().String(updateHttpsProxy, "", "HTTPS proxy used for downloading binary (In the format of https://<username>:<password>@<proxy_host>:<proxy_port>). Overrides a potential HTTPS_PROXY setting in the enviroment.")
 }

@@ -122,7 +122,7 @@ var clusterUpFlagSet = flag.NewFlagSet(commandName, flag.ContinueOnError)
 // subscription Manager FlagSet contains username and password details
 var subscriptionManagerFlagSet = flag.NewFlagSet(commandName, flag.ContinueOnError)
 
-// minishiftToClusterUp is a mapping between falg names used in minishift CLI and flag name as passed to 'cluster up'
+// minishiftToClusterUp is a mapping between flag names used in minishift CLI and flag name as passed to 'cluster up'
 var minishiftToClusterUp = map[string]string{
 	"openshift-env":     "env",
 	"openshift-version": "version",
