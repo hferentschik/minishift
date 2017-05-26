@@ -97,6 +97,22 @@ var (
 	shellProxyEnv    string
 )
 
+var httpProxyFlag = &flag.Flag{
+	Name:      httpProxy,
+	Shorthand: "",
+	Usage:     "HTTP proxy used for downloading artefact and configure Docker as well as OpenShift (In the format of https//<username>:<password>@<proxy_host>:<proxy_port>). Overrides a potential HTTPS_PROXY setting in the enviroment.",
+	Value:     newStringValue("", new(string)),
+	DefValue:  "",
+}
+
+var httpsProxyFlag = &flag.Flag{
+	Name:      httpsProxy,
+	Shorthand: "",
+	Usage:     "HTTPS proxy used for downloading artefact and configure Docker as well as OpenShift (In the format of https://<username>:<password>@<proxy_host>:<proxy_port>). Overrides a potential HTTPS_PROXY setting in the enviroment.",
+	Value:     newStringValue("", new(string)),
+	DefValue:  "",
+}
+
 // startCmd represents the start command
 var startCmd = &cobra.Command{
 	Use:   commandName,
@@ -393,9 +409,9 @@ func initClusterUpFlags() {
 	clusterUpFlagSet.Bool(metrics, false, "Install metrics (experimental)")
 	clusterUpFlagSet.Bool(logging, false, "Install logging (experimental)")
 	clusterUpFlagSet.String(openshiftVersion, version.GetOpenShiftVersion(), fmt.Sprintf("The OpenShift version to run, eg. %s", version.GetOpenShiftVersion()))
-	clusterUpFlagSet.String(httpProxy, "", "HTTP proxy used for downloading artefact and configure Docker as well as OpenShift (In the format of http://<username>:<password>@<proxy_host>:<proxy_port>). Overrides a potential HTTP_PROXY setting in the enviroment.")
-	clusterUpFlagSet.String(httpsProxy, "", "HTTPS proxy used for downloading artefact and configure Docker as well as OpenShift (In the format of https://<username>:<password>@<proxy_host>:<proxy_port>). Overrides a potential HTTPS_PROXY setting in the enviroment.")
 	clusterUpFlagSet.String(noProxyList, "", "List of hosts or subnets for which no proxy should be used.")
+	clusterUpFlagSet.AddFlag(httpProxyFlag)
+	clusterUpFlagSet.AddFlag(httpsProxyFlag)
 }
 
 // initProxyFlags create the CLI flags which needs to be passed for proxy
@@ -496,3 +512,20 @@ func setSubscriptionManagerParameters() {
 func getConfigClusterName(ip string, port int) string {
 	return fmt.Sprintf("%s:%d", strings.Replace(ip, ".", "-", -1), port)
 }
+
+type stringValue string
+
+func newStringValue(val string, p *string) *stringValue {
+	*p = val
+	return (*stringValue)(p)
+}
+
+func (s *stringValue) Set(val string) error {
+	*s = stringValue(val)
+	return nil
+}
+func (s *stringValue) Type() string {
+	return "string"
+}
+
+func (s *stringValue) String() string { return string(*s) }

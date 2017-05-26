@@ -29,11 +29,6 @@ import (
 	"strings"
 )
 
-const (
-	updateHttpProxy  = "http-proxy"
-	updateHttpsProxy = "https-proxy"
-)
-
 var updateCmd = &cobra.Command{
 	Use:   "update",
 	Short: "Update to latest version of Minishift.",
@@ -42,7 +37,7 @@ var updateCmd = &cobra.Command{
 }
 
 func runUpdate(cmd *cobra.Command, args []string) {
-	proxyConfig, err := util.NewProxyConfig(viper.GetString(updateHttpProxy), viper.GetString(updateHttpsProxy), "")
+	proxyConfig, err := util.NewProxyConfig(viper.GetString(httpProxy), viper.GetString(httpsProxy), "")
 	if err != nil {
 		atexit.ExitWithMessage(1, err.Error())
 	}
@@ -82,6 +77,6 @@ func runUpdate(cmd *cobra.Command, args []string) {
 
 func init() {
 	RootCmd.AddCommand(updateCmd)
-	updateCmd.Flags().String(updateHttpProxy, "", "HTTP proxy used for downloading binary (In the format of http://<username>:<password>@<proxy_host>:<proxy_port>). Overrides a potential HTTP_PROXY setting in the enviroment.")
-	updateCmd.Flags().String(updateHttpsProxy, "", "HTTPS proxy used for downloading binary (In the format of https://<username>:<password>@<proxy_host>:<proxy_port>). Overrides a potential HTTPS_PROXY setting in the enviroment.")
+	updateCmd.Flags().AddFlag(httpProxyFlag)
+	updateCmd.Flags().AddFlag(httpsProxyFlag)
 }
