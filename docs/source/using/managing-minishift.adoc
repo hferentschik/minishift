@@ -275,3 +275,18 @@ Use the `openshift-version` option to request a specific version of OpenShift. Y
 
 The Minishift VM is exposed to the host system with a host-only IP address that
 can be obtained with the `minishift ip` command.
+
+[[connecting-with-ssh]]
+== Connecting to the Minishift VM with SSH
+
+You can use the xref:../command-ref/minishift_ssh{outfilesuffix}[`minishift ssh`] command to interact with the Minishift VM.
+
+You can run `minishift ssh` without a sub-command to open an interactive shell. You can then run commands on the
+Minishift VM in the same way that you run commands interactively on any remote machine using SSH.
+
+You can also run the command with a sub-command. Minishift then sends the command to the Minishift VM and returns
+the result to your local shell. For example:
+
+----
+minishift ssh -- docker ps
+----
