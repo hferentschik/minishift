@@ -11,83 +11,77 @@ toc::[]
 [[overview]]
 == Overview
 
-Minishift uses the following CI build servers: CentOS, AppVeyor, Circle, and Travis.
-These servers build incoming pull requests and provide the status of the builds to ensure continuous integration.
-Except for Travis CI, they also archive build artifacts of successful builds.
+Minishift uses the following CI build systems: CentOS CI, AppVeyor, Circle CI, and Travis CI.
+These systems build the master branch when a commit occurs as well as incoming pull requests.
+Except for Travis CI, they also archive build artifacts.
 
 image::ci-servers.png[CI Servers]
 
-
-The following sections describe the various CI build servers Minishift utilizes.
+The following sections describe the various CI build systems Minishift utilizes.
 
 [[centos-ci]]
 == CentOS CI
 
-https://ci.centos.org/[CentOS CI] server is the only CI server which can run integration tests, as it supports nested virtualization.
-Thus it is used to run integration tests, unit tests and language-style checks.
-It also ensures that the binary cross compiles.
-See the https://github.com/minishift/minishift/blob/master/centos_ci.sh[CentOS CI config] file to see the configuration of the https://ci.centos.org/job/minishift/[CentOS CI Jenkins job for Minishift] .
+link:https://ci.centos.org/[CentOS CI] is the only CI system which can run integration tests, as it supports nested virtualization.
+Thus it is used to run integration tests in addition to unit tests and language-style checks.
+See the link:https://github.com/minishift/minishift/blob/master/centos_ci.sh[CentOS CI config] file to see the configuration of the link:https://ci.centos.org/job/minishift/[CentOS CI Jenkins job for Minishift].
 
-The artifacts of a successful pull request build can be found at http://artifacts.ci.centos.org/minishift/minishift/pr/[artifacts.ci.centos.org/minishift/minishift/pr/<PR_ID>].
-The artifacts of a successful master build can be found at http://artifacts.ci.centos.org/minishift/minishift/master/[artifacts.ci.centos.org/minishift/minishift/master/<BUILD_ID>].
-For more information about CentOS CI, see the https://wiki.centos.org/QaWiki/CI[CentOS CI] documentation.
+On top of building the master branch and pull requests, CentOS CI is also used to build the tar bundle used for integration into docs.openshift.org. See xref:../contributing/writing-docs.adoc#integration-with-docs-openshift-org[Integration with docs.openshift.org] for more information.
+
+The artifacts of a successful master build can be found at link:http://artifacts.ci.centos.org/minishift/minishift/master/[artifacts.ci.centos.org/minishift/minishift/master/<BUILD_ID>].
+The artifacts of a successful pull request build can be found at link:http://artifacts.ci.centos.org/minishift/minishift/pr/[artifacts.ci.centos.org/minishift/minishift/pr/<PR_ID>].
+For more information about CentOS CI, see the link:https://wiki.centos.org/QaWiki/CI[CentOS CI] documentation.
 
 
 [[circle-ci]]
 == Circle CI
 
-https://circleci.com/[Circle CI] server is used for compilation and unit testing on macOS.
-See the https://github.com/minishift/minishift/blob/master/circle.yml[Circle CI config] file to see the configuration of the https://circleci.com/gh/minishift/minishift[circle-CI job for Minishift].
+link:https://circleci.com/[Circle CI] is used for compilation and unit testing on macOS.
+See the link:https://github.com/minishift/minishift/blob/master/circle.yml[Circle CI config] file to see the configuration of the link:https://circleci.com/gh/minishift/minishift[circle-CI job for Minishift].
 
-[[appveyor-ci]]
-== AppVeyor CI
+[[appveyor]]
+== AppVeyor
 
-https://ci.appveyor.com/project/hferentschik/minishift-o61ou[AppVeyor CI] server is used for compilation and unit testing on the Windows operating system.
-See the https://github.com/minishift/minishift/blob/master/appveyor.yml[AppVeyor CI config] file to see the configuration of the https://ci.appveyor.com/project/hferentschik/minishift-o61ou[AppVeyor CI job for Minishift].
+link:https://ci.appveyor.com/project/hferentschik/minishift-o61ou[AppVeyor] is used for compilation and unit testing on Windows.
+See the link:https://github.com/minishift/minishift/blob/master/appveyor.yml[AppVeyor CI config] file to see the configuration of the link:https://ci.appveyor.com/project/hferentschik/minishift-o61ou[AppVeyor CI job for Minishift].
 
 
 [[travis-ci]]
 == Travis CI
 
-https://travis-ci.org/[Travis CI] server is used for compilation and unit testing on Linux (Ubuntu).
-See the https://github.com/minishift/minishift/blob/master/.travis.yml[Travis CI config] file to see the configuration of the https://travis-ci.org/minishift/minishift/builds/[Travis CI job for Minishift].
+link:https://travis-ci.org/[Travis CI] is used for compilation and unit testing on Linux (Ubuntu).
+See the link:https://github.com/minishift/minishift/blob/master/.travis.yml[Travis CI config] file to see the configuration of the link:https://travis-ci.org/minishift/minishift/builds/[Travis CI job for Minishift].
 
-== Table format
+[[ci-server-summary]]
+== Summary
+
 The following table describes the various CI build servers Minishift utilizes and the locations of their build and configuration files:
 
-[cols="1,2,1,1", options="header"]
+[cols="4*", options="header"]
 |===
-|CI Servers
+|CI Systems
 |Description
 |CI Builds
 |Configuration files
 
-
-|https://ci.centos.org/[*CentOS*]
-|This is the only CI server which can run integration tests, as it supports nested virtualization.
+|link:https://ci.centos.org/[*CentOS CI*]
+|This is the only CI system which can run integration tests, as it supports nested virtualization.
 Thus it is used to run integration tests, unit tests and language-style checks.
-It also ensures that the binary cross compiles.
+|link:https://ci.centos.org/job/minishift/[master], link:https://ci.centos.org/job/minishift-pr/[pull requests], link:https://ci.centos.org/job/minishift-docs/[docs]
+|link:https://github.com/minishift/minishift/blob/master/centos_ci.sh[centos_ci.sh]
 
-The artifacts of a successful pull request build can be found at
-http://artifacts.ci.centos.org/minishift/minishift/pr/[artifacts.ci.centos.org/minishift/minishift/pr/<PR_ID>].
-The artifacts of a successful master build can be found at
-http://artifacts.ci.centos.org/minishift/minishift/master/[artifacts.ci.centos.org/minishift/minishift/master/<BUILD_ID>].
-See https://wiki.centos.org/QaWiki/CI[CentOS CI] documentation for further information.
-|https://ci.centos.org/job/minishift/
-|https://github.com/minishift/minishift/blob/master/centos_ci.sh
+|link:https://circleci.com/[*Circle CI*]
+|This system is used for compilation and unit testing on macOS.
+|link:https://circleci.com/gh/minishift/minishift/tree/master[master + pull requests]
+|link:https://github.com/minishift/minishift/blob/master/circle.yml[circle.yml]
 
-|https://circleci.com/[*Circle*]
-|This server is used for compilation and unit testing on macOS.
-|https://circleci.com/gh/minishift/minishift
-|https://github.com/minishift/minishift/blob/master/circle.yml
+|link:https://ci.appveyor.com[*AppVeyor*]
+|This server is used for compilation and unit testing on Windows.
+|link:https://ci.appveyor.com/project/hferentschik/minishift-o61ou/history[master + pull requests]
+|link:https://github.com/minishift/minishift/blob/master/appveyor.yml[appveyor.yml]
 
-|https://ci.appveyor.com/project/hferentschik/minishift-o61ou[*AppVeyor*]
-|This server is used for compilation and unit testing on the Windows operating system.
-|https://ci.appveyor.com/project/hferentschik/minishift-o61ou
-|https://github.com/minishift/minishift/blob/master/appveyor.yml
-
-|https://travis-ci.org/[*Travis*]
+|link:https://travis-ci.org/[*Travis CI*]
 |This server is used for compilation and unit testing on Linux (Ubuntu).
-|https://travis-ci.org/minishift/minishift/builds/
-|https://github.com/minishift/minishift/blob/master/.travis.yml
+|link:https://travis-ci.org/minishift/minishift/branches[master], link:https://travis-ci.org/minishift/minishift/pull_requests[pull requests]
+|link:https://github.com/minishift/minishift/blob/master/.travis.yml[.travis.yml]
 |===
