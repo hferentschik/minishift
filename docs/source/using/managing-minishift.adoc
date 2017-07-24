@@ -292,3 +292,19 @@ $ minishift ssh -- docker ps
 CONTAINER    IMAGE                   COMMAND                CREATED        STATUS        NAMES
 71fe8ff16548 openshift/origin:v1.5.1 "/usr/bin/openshift s" 4 minutes ago  Up 4 minutes  origin
 ----
+
+
+[[experimental-functionality]]
+== Experimental functionality
+
+To allow users and developers to get early access to some upcoming features, we offer a way to enable experimental functionality.
+
+For this you need to set an environment variable:
+
+----
+$ export MINISHIFT_ENABLE_EXPERIMENTAL=y
+----
+
+After this, when you would run a command like `minishift start -h` you will be shown some additional flags which have not yet been promoted for general use.
+
+Be aware that these features can break or give a result you weren't expecting. We welcome your feedback when using them.
