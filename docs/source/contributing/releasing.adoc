@@ -27,7 +27,7 @@ The following sections describe how to release Minishift either via automated jo
 An automated release can be performed by:
 
 ----
-$ API_KEY=<api-key> RELEASE_VERSION=<version> make ci_release
+$ make ci_release API_KEY=<api-key> RELEASE_VERSION=<version>
 ----
 
 where
@@ -35,13 +35,11 @@ where
   - `api-key` : Minishift CentOS CI API key
   - `version` : Expected release version. Eg : 1.0.0 (without 'v')
 
-In case, you are not able to trigger the job via command line, try running link:https://ci.centos.org/job/minishift-release[release build] by passing required `RELEASE_VERSION` information.
+The automated release performs:
 
-The automated release perform:
-
-- xref:cut-release[Cutting the Release]
-- xref:trigger-docs-build[Trigger the documentation build]
-- xref:post-release-tasks[Perform Post-Release Tasks]
+- xref:../contributing/releasing.adoc#cut-release[Cutting the Release]
+- xref:../contributing/releasing.adoc#trigger-docs-build[Trigger the documentation build]
+- xref:../contributing/releasing.adoc#post-release-tasks[Perform Post-Release Tasks]
 
 [[manaul-release]]
 == Manual Release
