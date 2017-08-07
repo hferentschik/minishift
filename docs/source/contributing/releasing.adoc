@@ -21,7 +21,7 @@ The following sections describe how to release Minishift either via automated jo
   For example, issues with a merged pull requests should be labeled as *resolution/done*.
 . Close milestone.
 
-[[auto-release]]
+[[automated-release]]
 == Automated Release
 
 An automated release can be performed by:
@@ -34,6 +34,8 @@ where
 
   - `api-key` : Minishift CentOS CI API key
   - `version` : Expected release version. Eg : 1.0.0 (without 'v')
+
+Once triggered you can follow the release process link:https://ci.centos.org/job/minishift-release/[here].
 
 The automated release performs:
 
