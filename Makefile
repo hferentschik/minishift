@@ -199,3 +199,8 @@ fmt:
 .PHONY: fmtcheck
 fmtcheck:
 	@gofmt -l -s $(SOURCE_DIRS) | grep ".*\.go"; if [ "$$?" = "0" ]; then exit 1; fi
+
+.PHONY: validate_commit
+validate_commit:
+	go get -u github.com/vbatts/git-validation
+	git-validation -q -run short-subject,message_regexp='Issue #[0-9]+ .*' -range master..$(shell git symbolic-ref --short HEAD)
